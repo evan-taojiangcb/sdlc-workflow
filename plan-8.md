@@ -50,6 +50,50 @@
 | Codex / 审查模型 | 设计审查、代码审查、结构约束审查 | 不能在工具不可用时被自动跳过 |
 | 人工操作员 | 提供输入、批准升级、处理超限和结构例外 | 不应手工覆盖已验证事实而不留痕 |
 
+### 2.3 Pattern Mapping
+
+v8 不只是“多写几条规则”，而是把工作流重新收敛为明确的 agent pattern 组合：
+
+| Pattern | 在 v8 中的体现 |
+|---------|----------------|
+| Sequential Chain | 主 pipeline 12 步顺序执行 |
+| Routing | `requirements-ingestion` 按文本 / 文件 / URL 路由 |
+| Evaluator-Optimizer | Gate 1 / Gate 2 / Test 三个闭环 |
+| Tool Wrapper | docs-updater / git-committer / tg-notifier |
+| Human-in-the-loop | 超轮次、结构例外、证据冲突时人工接管 |
+
+### 2.4 Two-Layer Architecture
+
+```text
+┌──────────────────────────────────────────────────────────────┐
+│ User-Level Skill Repository                                  │
+│ ~/.agents/skills/sdlc-workflow/                              │
+│                                                              │
+│ SKILL.md                 Orchestrator / entry                │
+│ references/*.md          Step contracts / gates / prompts    │
+│ templates/*.tpl          Project bootstrap templates         │
+│ scripts/init-project.sh  Initialization script               │
+└──────────────────────────────┬───────────────────────────────┘
+                               │ initialize / enforce
+┌──────────────────────────────▼───────────────────────────────┐
+│ Project-Level Workspace                                      │
+│ your-project/                                                │
+│                                                              │
+│ .claude/CLAUDE.md            Project context + iteration log │
+│ .claude/rules/*              Runtime workflow rules          │
+│ docs/ARCHITECTURE.md         Architecture truth source       │
+│ docs/SECURITY.md             Security baseline               │
+│ docs/CODING_GUIDELINES.md    Engineering conventions         │
+│ docs/iterations/*            requirements / design / tasks   │
+│ tests/unit|e2e|reports       Executable tests + evidence     │
+│ apps/web                     Frontend workspace              │
+│ apps/server                  Backend workspace               │
+│ packages/*                   Shared modules                  │
+└──────────────────────────────────────────────────────────────┘
+```
+
+设计意图是把“技能仓库负责流程约束”和“项目仓库负责业务实现”明确分层。模型只能在这两个层次允许的边界内行动。
+
 ---
 
 ## 3. Better-T-Stack Alignment
@@ -153,7 +197,60 @@ v8 的答案是：这些都必须写成规则，不交给模型自由发挥。
 | 11 | git-committer | Tool Wrapper | branch / commit / PR |
 | 12 | final notify | Notification | TG 消息 |
 
-### 5.2 Global Invariants
+### 5.2 End-to-End Flow
+
+```mermaid
+graph TD
+    START["/sdlc-workflow <input>"] --> INIT{项目已初始化?}
+    INIT -->|否| INIT_RUN["Step 0: init-project.sh"]
+    INIT -->|是| ENV
+    INIT_RUN --> ENV["读取 .env / 自动写入 TG_USERNAME"]
+
+    ENV --> ITER["创建 iteration 目录"]
+    ITER --> INGEST["Step 1: requirements-ingestion"]
+    INGEST --> CLARIFY["Step 2: requirements-clarifier"]
+    CLARIFY --> DESIGN["Step 3: design-generator"]
+    DESIGN --> TASKS["Step 4: task-generator"]
+
+    TASKS --> GATE1["Step 5: design-reviewer"]
+    GATE1 -->|FAIL| DESIGN_FIX["回到设计修订"]
+    DESIGN_FIX --> DESIGN
+    GATE1 -->|PASS| IMPL["Step 6: implementation"]
+
+    IMPL --> TESTGEN["Step 7: test-generator"]
+    TESTGEN --> GATE2["Step 8: code-reviewer"]
+    GATE2 -->|FAIL| IMPL_FIX["回到代码修订"]
+    IMPL_FIX --> IMPL
+    GATE2 -->|PASS| TESTPIPE["Step 9: test-pipeline"]
+
+    TESTPIPE -->|FAIL| TEST_FIX["回到代码修复"]
+    TEST_FIX --> IMPL
+    TESTPIPE -->|PASS| DOCS["Step 10: docs-updater"]
+    DOCS --> GIT["Step 11: git-committer"]
+    GIT --> NOTIFY["Step 12: final notify"]
+
+    GATE1 -->|超出重试次数| HUMAN["人工介入"]
+    GATE2 -->|超出重试次数| HUMAN
+    TESTPIPE -->|超出重试次数| HUMAN
+```
+
+### 5.3 Control Loops
+
+```text
+Design Loop
+  requirements -> design -> tasks -> Gate 1
+  FAIL -> revise design -> Gate 1
+
+Implementation Loop
+  approved design -> code -> Gate 2
+  FAIL -> revise code -> Gate 2
+
+Validation Loop
+  approved code -> lint -> unit -> e2e -> report
+  FAIL -> revise code/tests -> rerun pipeline
+```
+
+### 5.4 Global Invariants
 
 1. 每次运行必须生成一个新的 iteration 目录
 2. Gate 1 / Gate 2 / Test 的失败不能静默忽略
