@@ -31,5 +31,6 @@
 - 若必须偏离 Better-T-Stack 结构，需在 `design.md` 中给出明确理由，并经过 Gate 1 审查通过
 - 单元测试必须写入 `tests/unit/`，并按 workspace 镜像落位，如 `tests/unit/web/...`、`tests/unit/server/...`、`tests/unit/packages/...`
 - E2E 测试必须写入 `tests/e2e/`，并维护“需求 ID / 场景 ID / 文件路径”的唯一映射，不得重复覆盖同一需求路径
+- `tasks.md` 是执行状态单据：任务实现完成后，必须将任务标题从 `[ ]` 回写为 `[x]`，并同步勾选真实完成的验收标准
 - 测试链路为 `Playwright 预检 + Chrome DevTools MCP + WebMCP 最终交互验收`
 - 最终交互测试与最终测试报告以 Chrome DevTools MCP 和 WebMCP 产物为准

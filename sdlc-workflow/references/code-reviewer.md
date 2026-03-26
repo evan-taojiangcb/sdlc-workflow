@@ -5,6 +5,7 @@
 1. `git diff`（代码变更）
 2. `docs/CODING_GUIDELINES.md`
 3. `docs/SECURITY.md`
+4. 当前 iteration 的 `tasks.md`
 
 ## 输出
 
@@ -26,6 +27,7 @@ codex --approval-mode full-auto "审查以下代码变更。
 4) 编码规范符合度
 5) 错误处理完备性
 6) 文件是否落在正确 workspace
+7) 已完成任务是否在 tasks.md 中同步勾选
 
 给出 PASS/FAIL 及具体问题列表。
 
@@ -49,6 +51,7 @@ $(cat docs/SECURITY.md)"
 | 编码规范 | 格式化、导入顺序 | 符合项目规范 |
 | 错误处理 | 异常捕获、日志记录 | 关键路径有错误处理 |
 | 目录结构 | 文件放置位置 | Web 在 `apps/web`，Server 在 `apps/server`，共享逻辑在 `packages/*` |
+| 任务状态 | tasks.md 勾选与事实一致 | 已完成任务与验收标准已同步回写 |
 
 ### 3. OWASP Top 10 检查清单
 
@@ -102,6 +105,8 @@ A10: SSRF
 ```bash
 round=1
 max_rounds=${REVIEW_MAX_ROUNDS:-1}
+ITER_DIR="docs/iterations/$DATE/$SEQ-$SLUG-$TYPE"
+TASKS_FILE="$ITER_DIR/tasks.md"
 
 while [ $round -le $max_rounds ]; do
   echo "🔍 Code Review 第 $round 轮..."
@@ -120,11 +125,15 @@ while [ $round -le $max_rounds ]; do
 5) 错误处理完备性
 6) 文件是否落在正确 workspace
 7) 测试是否错误写入源码目录
+8) 已完成任务是否在 tasks.md 中同步勾选
 
 给出 PASS/FAIL 及具体问题列表。
 
 === git diff ===
 $DIFF
+
+=== tasks.md ===
+$(cat "$TASKS_FILE")
 EOF
 )"
   result=$(codex --approval-mode full-auto "$PROMPT")

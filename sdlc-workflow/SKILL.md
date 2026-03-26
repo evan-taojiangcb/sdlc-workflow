@@ -187,7 +187,11 @@ WHILE round <= REVIEW_MAX_ROUNDS:
 ```
 
 #### ⑥ Claude Code 开发
-按 tasks.md 逐任务实现代码，并在实现偏离 design.md 时同步修订 design/tasks，避免 Gate 2 审查对象与真实代码脱节。
+按 tasks.md 逐任务实现代码，并在实现偏离 design.md 时同步修订 design/tasks，避免 Gate 2 审查对象与真实代码脱节。每完成一个任务后，必须同步回写 `tasks.md`：
+
+- 将任务标题从 `### [ ] T-xxx` 改为 `### [x] T-xxx`
+- 将该任务下已实际满足的验收标准勾选为 `[x]`
+- 未完成或部分完成的任务不得提前勾选
 
 #### ⑦ test-generator
 - 输入：tasks.md + git diff
@@ -213,6 +217,12 @@ WHILE round <= REVIEW_MAX_ROUNDS:
       ABORT
   round+=1
 ```
+
+Gate 2 还必须检查 `tasks.md` 状态是否与真实实现一致：
+
+- 已实现的任务是否同步勾选
+- 已勾选的验收标准是否能被代码、测试和报告支撑
+- 是否存在“代码已完成但任务仍未完成”或“任务已勾选但证据不足”的状态漂移
 
 #### ⑨ test-pipeline
 ```
