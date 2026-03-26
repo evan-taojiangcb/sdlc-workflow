@@ -26,6 +26,7 @@ codex --approval-mode full-auto "审查以下设计文档和任务分解。
 3) 架构合规性
 4) 任务分解完整性（边界条件/错误处理）
 5) 数据模型合理性
+6) 目录落位是否符合 Better-T-Stack 风格 monorepo
 
 给出 PASS/FAIL 及具体问题列表。
 
@@ -51,6 +52,7 @@ $(cat docs/SECURITY.md)"
 | 架构合规 | 符合架构约定 | 无违反架构决策 |
 | 完整性 | 边界条件处理 | 所有 API 有错误处理 |
 | 数据模型 | 合理性 | 无数据冗余、关系清晰 |
+| 目录结构 | workspace 落位正确 | Web 在 `apps/web`，Server 在 `apps/server`，共享逻辑在 `packages/*` |
 
 ### 3. 循环逻辑
 
@@ -146,6 +148,7 @@ while [ $round -le $max_rounds ]; do
 3) 架构合规性
 4) 任务分解完整性（边界条件/错误处理）
 5) 数据模型合理性
+6) 目录落位是否符合 Better-T-Stack 风格 monorepo
 
 给出 PASS/FAIL 及具体问题列表。
 
@@ -189,6 +192,7 @@ done
 | 审查超时 | 重试最多 3 次，仍失败则中止 |
 | .env 未设置 | 使用默认 max_rounds=3 |
 | 设计文档不存在 | 回退到步骤③ |
+| 目录结构偏离默认约定 | FAIL，回退到步骤③补充目录影响声明 |
 
 ## TG 通知文案
 

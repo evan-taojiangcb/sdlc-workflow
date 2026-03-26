@@ -23,6 +23,7 @@
 4. 文件名使用 <slug> 前缀避免命名冲突
 5. 使用 $TEST_FRAMEWORK 语法（jest/vitest）
 6. 使用 $E2E_FRAMEWORK 语法（playwright/cypress）
+7. 测试样例必须引用真实 workspace 路径，不沿用过时的 `src/*` 假设
 ```
 
 ### 2. 单元测试生成
@@ -32,7 +33,7 @@
 // 使用 $TEST_FRAMEWORK 语法
 
 import { describe, it, expect, beforeEach } from '$TEST_FRAMEWORK';
-import { authService } from '../../src/services/authService';
+import { authService } from '../../apps/server/src/services/auth-service';
 
 describe('Auth Service', () => {
   let mockUser: TestUser;

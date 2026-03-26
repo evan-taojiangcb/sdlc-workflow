@@ -35,8 +35,8 @@ graph TD
 
 ```bash
 # 检测新增 API/模块
-NEW_APIS=$(git diff --name-only | grep "^src/api/" || echo "")
-NEW_FEATURES=$(git diff --name-only | grep "^src/features/" || echo "")
+NEW_APIS=$(git diff --name-only | grep -E "^(apps/server/src/|packages/.*/src/)" || echo "")
+NEW_FEATURES=$(git diff --name-only | grep -E "^(apps/web/src/|apps/native/src/|packages/.*/src/)" || echo "")
 
 if [ -n "$NEW_APIS" ]; then
   echo "## 新增 API
@@ -171,7 +171,7 @@ ITER_DIR="docs/iterations/$DATE/${SLUG}-${TYPE}/"
 echo "📊 分析代码变更..."
 
 # 2. 更新 README.md（新增功能）
-if git diff --name-only | grep -qE "^(src/|lib/)"; then
+if git diff --name-only | grep -qE "^(apps/|packages/)"; then
   update_readme
 fi
 
@@ -195,6 +195,15 @@ update_claude_md
 
 echo "✅ 文档更新完成"
 ```
+
+### 8. 目录结构同步
+
+若本次迭代改动了 workspace 边界，应同步更新 `docs/ARCHITECTURE.md`：
+
+- 新增或移除了 `apps/*`
+- 新增了 `packages/*`
+- 调整了共享模块归属
+- 记录为何没有沿用 Better-T-Stack 默认目录
 
 ## 命令模板
 

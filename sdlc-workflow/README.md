@@ -4,6 +4,14 @@
 
 **单 Agent 模式** + **双模型把关**（Claude Code 生成 / Codex CLI 审查）
 
+默认面向 Better-T-Stack 风格的全栈目录约定：
+
+- `apps/web`：Web 前端
+- `apps/server`：后端 API / BFF / Worker
+- `packages/*`：共享模块
+
+该技能会把目录结构纳入设计和审查，避免随意生成根目录级 `web/`、`api/`、`server/`。
+
 ---
 
 ## 功能特性

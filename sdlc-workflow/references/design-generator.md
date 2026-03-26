@@ -42,6 +42,20 @@ LATEST_DESIGNS=$(find "$HISTORY_DIR" -name "design.md" -type f \
 - **生成时间**: YYYY-MM-DD HH:mm:ss
 - **基于需求**: requirements.md
 
+## 0. 目录影响声明
+
+### 0.1 目标目录
+- `apps/web/src`: <是否修改 / 新增内容>
+- `apps/server/src`: <是否修改 / 新增内容>
+- `packages/<name>`: <是否新增共享模块>
+
+### 0.2 新增目录
+- <目录路径> - <新增原因>
+
+### 0.3 偏离说明
+- 若未采用 Better-T-Stack 默认结构，说明为什么不能复用 `apps/web` / `apps/server` / `packages/*`
+- 若需要新增根目录级 workspace，说明必要性、影响范围、后续治理计划
+
 ## 1. 技术方案概要
 
 ### 1.1 概述
@@ -195,6 +209,9 @@ Claude Code 在生成设计时应参考：
 3. 可扩展性
 4. 简单性（避免过度设计）
 5. 已有历史迭代中的设计模式
+6. 默认遵循 Better-T-Stack 风格目录：`apps/web`、`apps/server`、`packages/*`
+7. 共享逻辑优先下沉到 `packages/*`，不要在前后端复制
+8. 不要无理由新增根目录级 `web/`、`server/`、`api/`
 ```
 
 ## 命令模板
@@ -216,7 +233,12 @@ cat > "docs/iterations/$DATE/$SLUG-$TYPE/design.md" << 'TEMPLATE'
 TEMPLATE
 
 # 4. 验证设计文档完整性
-if ! grep -q "## 技术方案概要" "$DESIGN_FILE"; then
+if ! grep -q "## 0. 目录影响声明" "$DESIGN_FILE"; then
+  echo "ERROR: design.md 缺少目录影响声明"
+  exit 1
+fi
+
+if ! grep -q "## 1. 技术方案概要" "$DESIGN_FILE"; then
   echo "ERROR: design.md 缺少必需章节"
   exit 1
 fi

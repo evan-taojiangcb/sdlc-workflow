@@ -21,6 +21,7 @@
 3. 任务有明确的验收标准
 4. 任务有清晰的依赖关系
 5. 复杂度评估准确
+6. 任务必须明确落位到对应 workspace
 ```
 
 ### 2. 任务结构
@@ -33,8 +34,8 @@
 **描述**: <详细的任务描述>
 
 **目标文件**:
-- src/auth/login.ts
-- src/auth/logout.ts
+- apps/server/src/routes/auth/login.ts
+- packages/auth/src/index.ts
 
 **验收标准**:
 - [ ] 用户可以成功登录
@@ -146,8 +147,8 @@ T-002 ──┘           │
 **描述**: 配置 Redis 客户端，支持 Session 存储
 
 **目标文件**:
-- src/lib/redis.ts
-- src/config/index.ts
+- apps/server/src/lib/redis.ts
+- packages/config/src/index.ts
 
 **验收标准**:
 - [ ] Redis 客户端可正常连接
@@ -169,8 +170,9 @@ T-002 ──┘           │
 **描述**: 实现用户登录接口，返回 JWT Token
 
 **目标文件**:
-- src/api/auth/login.ts
-- src/services/authService.ts
+- apps/server/src/routes/auth/login.ts
+- apps/server/src/services/auth-service.ts
+- packages/auth/src/session.ts
 
 **验收标准**:
 - [ ] POST /api/auth/login 返回 Token
@@ -225,6 +227,7 @@ DESIGN_FILE="docs/iterations/$DATE/$SLUG-$TYPE/design.md"
 # - 数据模型 → 迁移任务
 # - 安全考量 → 安全实现任务
 # - 测试需求 → 测试任务
+# - 目录影响声明 → workspace 落位任务
 
 # 3. 生成任务 ID（T-001, T-002, ...）
 TASK_ID="T-$(printf '%03d' $TASK_NUM)"

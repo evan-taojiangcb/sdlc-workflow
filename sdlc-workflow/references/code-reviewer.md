@@ -25,6 +25,7 @@ codex --approval-mode full-auto "审查以下代码变更。
 3) 架构合规性
 4) 编码规范符合度
 5) 错误处理完备性
+6) 文件是否落在正确 workspace
 
 给出 PASS/FAIL 及具体问题列表。
 
@@ -47,6 +48,7 @@ $(cat docs/SECURITY.md)"
 | 架构合规 | 模块职责、依赖关系 | 无架构违规 |
 | 编码规范 | 格式化、导入顺序 | 符合项目规范 |
 | 错误处理 | 异常捕获、日志记录 | 关键路径有错误处理 |
+| 目录结构 | 文件放置位置 | Web 在 `apps/web`，Server 在 `apps/server`，共享逻辑在 `packages/*` |
 
 ### 3. OWASP Top 10 检查清单
 
@@ -116,6 +118,7 @@ while [ $round -le $max_rounds ]; do
 3) 架构合规性
 4) 编码规范符合度
 5) 错误处理完备性
+6) 文件是否落在正确 workspace
 
 给出 PASS/FAIL 及具体问题列表。
 
@@ -170,14 +173,14 @@ Codex 返回格式：
 
 ### 问题 1: [安全] SQL 注入风险
 - **严重性**: 高
-- **位置**: src/db/userRepository.ts:42
+- **位置**: apps/server/src/db/user-repository.ts:42
 - **描述**: 用户输入直接拼接到 SQL 查询
 - **代码**: query("SELECT * FROM users WHERE id = " + userId)
 - **建议**: 使用参数化查询
 
 ### 问题 2: [质量] 缺少错误处理
 - **严重性**: 中
-- **位置**: src/services/authService.ts:78
+- **位置**: apps/server/src/services/auth-service.ts:78
 - **描述**: login 函数未捕获数据库连接异常
 - **建议**: 添加 try-catch
 
@@ -207,6 +210,7 @@ while [ $round -le $max_rounds ]; do
 3) 架构合规性
 4) 编码规范符合度
 5) 错误处理完备性
+6) 文件是否落在正确 workspace
 
 给出 PASS/FAIL 及具体问题列表。
 
@@ -248,6 +252,7 @@ done
 | git diff 为空 | 警告：无可审查代码 |
 | 审查超时 | 重试最多 3 次，仍失败则中止 |
 | 严重安全漏洞 | 高优先级通知，立即修复 |
+| 文件落位违反 monorepo 约定 | FAIL，要求回退修复目录结构 |
 
 ## TG 通知文案
 

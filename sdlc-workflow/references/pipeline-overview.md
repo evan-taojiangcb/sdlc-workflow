@@ -124,6 +124,12 @@ git diff (代码变更)   ──────→  🔍 Gate 2: code-reviewer
 │  │               ├── requirements.md                     │
 │  │               ├── design.md                           │
 │  │               └── tasks.md                            │
+│  ├── apps/                                               │
+│  │   ├── web/                                            │
+│  │   ├── server/                                         │
+│  │   └── native/                                         │
+│  ├── packages/                                           │
+│  │   └── */                                              │
 │  ├── tests/                                              │
 │  │   ├── unit/                                          │
 │  │   ├── e2e/                                           │
@@ -151,6 +157,13 @@ git diff (代码变更)   ──────→  🔍 Gate 2: code-reviewer
 ### 6.4 TG_USERNAME 自动检测
 - TG/OpenClaw 触发场景下从 `OPENCLAW_TRIGGER_USER` 自动获取
 - 免去手动配置步骤
+
+### 6.5 全栈目录约束
+- 默认遵循 Better-T-Stack 风格 monorepo：`apps/web`、`apps/server`、`packages/*`
+- Web 代码默认进入 `apps/web/src/`
+- 后端代码默认进入 `apps/server/src/`
+- 共享逻辑默认进入 `packages/*`
+- 默认不接受新增根目录级 `web/`、`api/`、`server/`
 
 ## 7. 环境变量配置
 

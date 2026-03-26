@@ -15,3 +15,15 @@
 - Codex CLI 不可用时必须中止，不能自动跳过 Gate
 - 测试文件统一存放 tests/ 目录（unit/ + e2e/ + reports/）
 - 新需求处理前必须参考 docs/iterations/ 历史上下文
+- 全栈项目默认遵循 Better-T-Stack 风格 monorepo：
+  - `apps/web`：Web 前端应用
+  - `apps/server`：后端 API / BFF / Worker 入口
+  - `apps/native`：移动端应用（如存在）
+  - `apps/docs`：文档站点（如存在）
+  - `packages/*`：共享代码、类型、配置、SDK、业务模块
+- 业务代码禁止随意落在新的顶层目录中；默认不允许新增根目录级 `web/`、`server/`、`api/`、`frontend/`、`backend/`
+- Web 前端实现默认落在 `apps/web/src/`
+- 后端实现默认落在 `apps/server/src/`
+- 跨端共享逻辑默认进入 `packages/*`，不要在 `apps/web` 和 `apps/server` 间复制
+- 设计文档必须声明目录影响：新增目录、修改目录、为什么不能复用现有目录
+- 若必须偏离 Better-T-Stack 结构，需在 `design.md` 中给出明确理由，并经过 Gate 1 审查通过

@@ -151,6 +151,7 @@ MKDIR -p "$ITER_DIR"
 
 #### ③ design-generator
 - 读取：requirements.md + docs/ARCHITECTURE.md + docs/SECURITY.md + docs/iterations/（历史）
+- 设计必须声明代码落位：默认遵循 Better-T-Stack 风格 `apps/web` / `apps/server` / `packages/*`
 - 输出：docs/iterations/YYYY-MM-DD/<slug>-<type>/design.md
 
 #### ④ task-generator
@@ -281,3 +282,4 @@ openclaw message send --channel telegram --target "$TG_USERNAME" --message "$MSG
 11. **统一测试目录**：tests/unit/ + tests/e2e/ + tests/reports/
 12. **迭代可追溯**：docs/iterations/YYYY-MM-DD/<slug>-<type>/
 13. **审查门禁不可降级**：Codex CLI 不可用时必须中止，不能自动跳过 Gate
+14. **全栈目录约束**：默认采用 Better-T-Stack 风格 monorepo，业务代码不应随意落到根目录级 `web/`/`api/`/`server/`
