@@ -17,7 +17,8 @@
 - 默认遵循 Better-T-Stack 风格目录：
   - `apps/web/src` 放 Web 前端代码
   - `apps/server/src` 放后端代码
-  - `packages/*` 放共享逻辑
+  - `packages/config` 为基础包
+  - `packages/env|api|auth|db|infra|ui` 按能力启用并承载共享逻辑
 - 默认不新建根目录级 `web/`、`api/`、`server/` 等目录，除非设计文档明确批准
 
 ## 迭代历史

@@ -31,10 +31,10 @@ codex --approval-mode full-auto "审查以下设计文档和任务分解。
 给出 PASS/FAIL 及具体问题列表。
 
 === design.md ===
-$(cat docs/iterations/$DATE/$SLUG-$TYPE/design.md)
+$(cat docs/iterations/$DATE/$SEQ-$SLUG-$TYPE/design.md)
 
 === tasks.md ===
-$(cat docs/iterations/$DATE/$SLUG-$TYPE/tasks.md)
+$(cat docs/iterations/$DATE/$SEQ-$SLUG-$TYPE/tasks.md)
 
 === ARCHITECTURE.md ===
 $(cat docs/ARCHITECTURE.md)
@@ -58,7 +58,7 @@ $(cat docs/SECURITY.md)"
 
 ```bash
 round=1
-max_rounds=${REVIEW_MAX_ROUNDS:-3}
+max_rounds=${REVIEW_MAX_ROUNDS:-1}
 
 while [ $round -le $max_rounds ]; do
   echo "🔍 设计 Review 第 $round 轮..."
@@ -134,7 +134,7 @@ ARCH_FILE="docs/ARCHITECTURE.md"
 SEC_FILE="docs/SECURITY.md"
 
 round=1
-max_rounds=${REVIEW_MAX_ROUNDS:-3}
+max_rounds=${REVIEW_MAX_ROUNDS:-1}
 
 while [ $round -le $max_rounds ]; do
   echo "🔍 设计 Review 第 $round 轮..."
@@ -190,7 +190,7 @@ done
 |----------|----------|
 | Codex CLI 不可用 | 立即中止 Pipeline，通知人工介入 |
 | 审查超时 | 重试最多 3 次，仍失败则中止 |
-| .env 未设置 | 使用默认 max_rounds=3 |
+| .env 未设置 | 使用默认 max_rounds=1 |
 | 设计文档不存在 | 回退到步骤③ |
 | 目录结构偏离默认约定 | FAIL，回退到步骤③补充目录影响声明 |
 

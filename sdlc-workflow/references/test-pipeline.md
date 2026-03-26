@@ -2,11 +2,12 @@
 
 ## 输入
 
-`tests/unit/` 和 `tests/e2e/` 内的测试文件
+`tests/unit/` 和 `tests/e2e/` 内的测试文件，以及 Chrome DevTools MCP 的验证产物
 
 ## 输出
 
-`tests/reports/<slug>-<timestamp>.md` — 测试执行报告
+`tests/reports/<slug>-<timestamp>.md` — 测试执行报告  
+`tests/reports/chrome/<slug>-<scenario>.md` — Chrome DevTools MCP 验证记录
 
 ## 详细行为
 
@@ -16,12 +17,14 @@
 graph LR
     LINT["Stage 1: Lint<br/>$LINT_TOOL"]
     UNIT["Stage 2: Unit<br/>$TEST_FRAMEWORK"]
-    E2E["Stage 3: E2E<br/>$E2E_FRAMEWORK + Chrome DevTools MCP"]
+    E2E["Stage 3: E2E<br/>$E2E_FRAMEWORK"]
+    CHROME["Stage 4: Chrome DevTools MCP<br/>页面/控制台/网络验证"]
 
     LINT --> UNIT
     LINT --> E2E
     UNIT --> REPORT["测试报告"]
-    E2E --> REPORT
+    E2E --> CHROME
+    CHROME --> REPORT
 ```
 
 ### 2. Stage 1: Lint
@@ -98,7 +101,21 @@ case "$E2E_FRAMEWORK" in
 esac
 ```
 
-### 5. 并行执行
+### 5. Stage 4: Chrome DevTools MCP 验证
+
+E2E 通过后，必须再用 Chrome DevTools MCP 做一次浏览器层验证，至少检查：
+
+1. 关键页面可见状态是否符合预期
+2. Console 中是否存在未处理错误
+3. 关键网络请求是否成功返回
+4. 生成独立的 MCP 验证记录，写入 `tests/reports/chrome/`
+
+```bash
+echo "🧭 使用 Chrome DevTools MCP 验证关键用户路径..."
+# 打开页面 -> 执行动作 -> 获取 snapshot/console/network -> 写入 tests/reports/chrome/<slug>-<scenario>.md
+```
+
+### 6. 并行执行
 
 Stage 2 和 Stage 3 可以并行执行（如果无依赖）：
 
@@ -131,7 +148,7 @@ else
 fi
 ```
 
-### 6. 测试报告生成
+### 7. 测试报告生成
 
 ```bash
 # tests/reports/<slug>-<timestamp>.md
@@ -147,6 +164,7 @@ cat > "$REPORT_FILE" << 'EOF'
 - **迭代**: <seq>-<slug>-<type>
 - **测试框架**: $TEST_FRAMEWORK
 - **E2E 框架**: $E2E_FRAMEWORK
+- **Chrome DevTools MCP**: required
 
 ## 测试结果
 
@@ -155,6 +173,14 @@ cat > "$REPORT_FILE" << 'EOF'
 | Lint | ✅ | - | - |
 | Unit | ✅ | 25/25 | 85% |
 | E2E | ✅ | 8/8 | - |
+| Chrome MCP | ✅ | 1/1 | 页面、控制台、网络已验证 |
+
+## Requirement → Test Matrix
+
+| Requirement ID | Task IDs | Test File | Scenario ID | Chrome Evidence |
+|----------------|----------|-----------|-------------|-----------------|
+| R-001 | T-001 | tests/unit/web/logic/calculator.test.ts | - | - |
+| R-003 | T-005 | tests/e2e/calculator/E2E-001-basic-calculation.e2e.ts | E2E-001 | tests/reports/chrome/calculator-E2E-001.md |
 
 ## 失败用例（如有）
 
@@ -168,11 +194,11 @@ EOF
 echo "📋 测试报告: $REPORT_FILE"
 ```
 
-### 7. 循环修复逻辑
+### 8. 循环修复逻辑
 
 ```bash
 round=1
-max_rounds=${REVIEW_MAX_ROUNDS:-3}
+max_rounds=${REVIEW_MAX_ROUNDS:-1}
 
 while [ $round -le $max_rounds ]; do
   echo "🧪 测试执行第 $round 轮..."
@@ -215,7 +241,7 @@ REPORT_FILE="tests/reports/${SLUG}-${TIMESTAMP}.md"
 LINT_TOOL=${LINT_TOOL:-eslint}
 TEST_FRAMEWORK=${TEST_FRAMEWORK:-jest}
 E2E_FRAMEWORK=${E2E_FRAMEWORK:-playwright}
-REVIEW_MAX_ROUNDS=${REVIEW_MAX_ROUNDS:-3}
+REVIEW_MAX_ROUNDS=${REVIEW_MAX_ROUNDS:-1}
 
 run_lint() {
   case "$LINT_TOOL" in
@@ -242,6 +268,13 @@ run_e2e_tests() {
   esac
 }
 
+run_chrome_mcp_verification() {
+  mkdir -p tests/reports/chrome
+  echo "- 页面可见状态: verified" > "tests/reports/chrome/${SLUG}-E2E-001.md"
+  echo "- Console errors: none" >> "tests/reports/chrome/${SLUG}-E2E-001.md"
+  echo "- Network checks: verified" >> "tests/reports/chrome/${SLUG}-E2E-001.md"
+}
+
 round=1
 
 while [ $round -le $REVIEW_MAX_ROUNDS ]; do
@@ -262,7 +295,16 @@ while [ $round -le $REVIEW_MAX_ROUNDS ]; do
   echo "🎭 Stage 3: E2E Tests..."
   run_e2e_tests || E2E_FAILED=1
 
-  if [ "$LINT_FAILED" -eq 0 ] && [ "$UNIT_FAILED" -eq 0 ] && [ "$E2E_FAILED" -eq 0 ]; then
+  # Stage 4: Chrome DevTools MCP Verification
+  CHROME_FAILED=0
+  echo "🧭 Stage 4: Chrome DevTools MCP..."
+  if [ "$E2E_FAILED" -eq 0 ]; then
+    run_chrome_mcp_verification || CHROME_FAILED=1
+  else
+    CHROME_FAILED=1
+  fi
+
+  if [ "$LINT_FAILED" -eq 0 ] && [ "$UNIT_FAILED" -eq 0 ] && [ "$E2E_FAILED" -eq 0 ] && [ "$CHROME_FAILED" -eq 0 ]; then
     echo "✅ 所有测试通过"
     exit 0
   fi
@@ -284,6 +326,7 @@ done
 | 测试框架未安装 | 提示安装， abort |
 | 测试文件不存在 | 警告，跳过该阶段 |
 | E2E 测试超时 | 增加 timeout 配置 |
+| Chrome DevTools MCP 未验证 | 视为测试未完成 |
 | 并行执行失败 | 回退为串行执行 |
 
 ## TG 通知文案

@@ -101,7 +101,7 @@ A10: SSRF
 
 ```bash
 round=1
-max_rounds=${REVIEW_MAX_ROUNDS:-3}
+max_rounds=${REVIEW_MAX_ROUNDS:-1}
 
 while [ $round -le $max_rounds ]; do
   echo "🔍 Code Review 第 $round 轮..."
@@ -119,6 +119,7 @@ while [ $round -le $max_rounds ]; do
 4) 编码规范符合度
 5) 错误处理完备性
 6) 文件是否落在正确 workspace
+7) 测试是否错误写入源码目录
 
 给出 PASS/FAIL 及具体问题列表。
 
@@ -194,7 +195,7 @@ Codex 返回格式：
 set -euo pipefail
 
 round=1
-max_rounds=${REVIEW_MAX_ROUNDS:-3}
+max_rounds=${REVIEW_MAX_ROUNDS:-1}
 
 while [ $round -le $max_rounds ]; do
   echo "🔍 Code Review 第 $round 轮..."

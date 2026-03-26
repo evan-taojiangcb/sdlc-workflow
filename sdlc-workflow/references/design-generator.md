@@ -210,8 +210,9 @@ Claude Code 在生成设计时应参考：
 4. 简单性（避免过度设计）
 5. 已有历史迭代中的设计模式
 6. 默认遵循 Better-T-Stack 风格目录：`apps/web`、`apps/server`、`packages/*`
-7. 共享逻辑优先下沉到 `packages/*`，不要在前后端复制
-8. 不要无理由新增根目录级 `web/`、`server/`、`api/`
+7. `packages/config` 为基础包；`packages/env`、`packages/api`、`packages/auth`、`packages/db`、`packages/infra`、`packages/ui` 按所选能力启用
+8. 共享逻辑优先下沉到 `packages/*`，不要在前后端复制
+9. 不要无理由新增根目录级 `web/`、`server/`、`api/`
 ```
 
 ## 命令模板
@@ -227,7 +228,7 @@ HISTORY=$(find docs/iterations/ -name "design.md" -type f \
   | sort -r | head -3 | xargs -I{} cat {})
 
 # 3. 生成设计文档
-cat > "docs/iterations/$DATE/$SLUG-$TYPE/design.md" << 'TEMPLATE'
+cat > "docs/iterations/$DATE/$SEQ-$SLUG-$TYPE/design.md" << 'TEMPLATE'
 # 技术设计文档
 ...
 TEMPLATE

@@ -22,6 +22,7 @@
 4. 任务有清晰的依赖关系
 5. 复杂度评估准确
 6. 任务必须明确落位到对应 workspace
+7. 每个任务必须绑定 Requirement IDs，便于后续测试映射
 ```
 
 ### 2. 任务结构
@@ -36,6 +37,10 @@
 **目标文件**:
 - apps/server/src/routes/auth/login.ts
 - packages/auth/src/index.ts
+
+**Requirement IDs**:
+- R-001
+- R-003
 
 **验收标准**:
 - [ ] 用户可以成功登录
@@ -129,6 +134,9 @@ T-002 ──┘           │
 - db/migrations/001_create_users.sql
 - db/migrations/002_create_sessions.sql
 
+**Requirement IDs**:
+- R-001
+
 **验收标准**:
 - [ ] users 表创建成功
 - [ ] sessions 表创建成功
@@ -149,6 +157,9 @@ T-002 ──┘           │
 **目标文件**:
 - apps/server/src/lib/redis.ts
 - packages/config/src/index.ts
+
+**Requirement IDs**:
+- R-001
 
 **验收标准**:
 - [ ] Redis 客户端可正常连接
@@ -173,6 +184,10 @@ T-002 ──┘           │
 - apps/server/src/routes/auth/login.ts
 - apps/server/src/services/auth-service.ts
 - packages/auth/src/session.ts
+
+**Requirement IDs**:
+- R-002
+- R-003
 
 **验收标准**:
 - [ ] POST /api/auth/login 返回 Token
@@ -229,11 +244,11 @@ DESIGN_FILE="docs/iterations/$DATE/$SEQ-$SLUG-$TYPE/design.md"
 # - 测试需求 → 测试任务
 # - 目录影响声明 → workspace 落位任务
 
-# 3. 生成任务 ID（T-001, T-002, ...）
+# 3. 生成任务 ID（T-001, T-002, ...）并绑定 Requirement IDs（R-001, R-002, ...）
 TASK_ID="T-$(printf '%03d' $TASK_NUM)"
 
 # 4. 写入 tasks.md
-cat > "docs/iterations/$DATE/$SLUG-$TYPE/tasks.md" << 'TEMPLATE'
+cat > "docs/iterations/$DATE/$SEQ-$SLUG-$TYPE/tasks.md" << 'TEMPLATE'
 # 任务分解文档
 ...
 TEMPLATE

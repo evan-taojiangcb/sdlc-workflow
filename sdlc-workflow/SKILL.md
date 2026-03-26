@@ -70,7 +70,7 @@ Pipeline 启动时按以下优先级确定 TG_USERNAME：
 | TEST_FRAMEWORK | jest | 单元测试框架 |
 | E2E_FRAMEWORK | playwright | E2E 测试框架 |
 | LINT_TOOL | eslint | Lint 工具 |
-| REVIEW_MAX_ROUNDS | 3 | 审查最大轮数 |
+| REVIEW_MAX_ROUNDS | 1 | 审查最大轮数 |
 | GIT_BRANCH_PREFIX | feat/ | Git 分支前缀 |
 | COMMIT_SCOPE | (空) | Commit scope |
 
@@ -161,7 +161,7 @@ MKDIR -p "$ITER_DIR"
 
 #### ③ design-generator
 - 读取：requirements.md + docs/ARCHITECTURE.md + docs/SECURITY.md + docs/iterations/（历史）
-- 设计必须声明代码落位：默认遵循 Better-T-Stack 风格 `apps/web` / `apps/server` / `packages/*`
+- 设计必须声明代码落位：默认遵循 Better-T-Stack 风格 `apps/web` / `apps/server` / 条件启用的 `packages/*`
 - 输出：docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/design.md
 
 #### ④ task-generator
@@ -192,8 +192,8 @@ WHILE round <= REVIEW_MAX_ROUNDS:
 #### ⑦ test-generator
 - 输入：tasks.md + git diff
 - 输出：
-  - tests/unit/<slug>.test.ts
-  - tests/e2e/<slug>.e2e.ts
+  - tests/unit/web|server|packages/...
+  - tests/e2e/<slug>/E2E-<nnn>-<scenario>.e2e.ts
   - tests/reports/<slug>-coverage.md
 
 #### ⑧ code-reviewer (Gate 2)
@@ -281,7 +281,7 @@ openclaw message send --channel telegram --target "$TG_USERNAME" --message "$MSG
 
 1. **单 Agent 模式**：所有步骤由一个 Claude Code Agent 执行
 2. **双模型把关**：Claude Code 生成，Codex CLI 审查
-3. **循环上限**：每个 Gate/Test ≤ REVIEW_MAX_ROUNDS（默认 3）
+3. **循环上限**：每个 Gate/Test ≤ REVIEW_MAX_ROUNDS（默认 1）
 4. **Conventional Commits**：`<type>(scope): description`
 5. **禁止直推**：所有变更通过 feature branch + PR
 6. **通知不中断**：TG 通知失败只 log，不影响 Pipeline
@@ -289,7 +289,9 @@ openclaw message send --channel telegram --target "$TG_USERNAME" --message "$MSG
 8. **文件隔离**：所有文件操作限项目根目录内
 9. **渐进式加载**：SKILL.md ≤500 行，详细规范按需从 references/ 加载
 10. **模板不覆盖**：init-project.sh 不覆盖已存在的文件
-11. **统一测试目录**：tests/unit/ + tests/e2e/ + tests/reports/
+11. **统一测试目录**：单元测试只能写入 `tests/unit/web|server|packages`，E2E 只能写入 `tests/e2e/`，报告写入 `tests/reports/`
+13. **E2E 证据要求**：关键用户路径的最终报告必须包含 Chrome DevTools MCP 的页面/控制台/网络验证结果
+14. **需求到测试唯一映射**：requirements、tasks、E2E 场景必须有唯一 ID 映射，禁止重复覆盖同一需求路径
 12. **迭代可追溯**：docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/
 13. **审查门禁不可降级**：Codex CLI 不可用时必须中止，不能自动跳过 Gate
 14. **全栈目录约束**：默认采用 Better-T-Stack 风格 monorepo，业务代码不应随意落到根目录级 `web/`/`api/`/`server/`

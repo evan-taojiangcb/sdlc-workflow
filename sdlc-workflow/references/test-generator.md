@@ -7,8 +7,8 @@
 
 ## 输出
 
-1. `tests/unit/<slug>.test.ts`
-2. `tests/e2e/<slug>.e2e.ts`
+1. `tests/unit/web|server|packages/...`
+2. `tests/e2e/<slug>/E2E-<nnn>-<scenario>.e2e.ts`
 3. `tests/reports/<slug>-coverage.md`
 
 ## 详细行为
@@ -20,55 +20,31 @@
 1. 单元测试覆盖每个任务的验收标准
 2. E2E 测试覆盖关键用户场景
 3. 测试文件直接写入 tests/ 对应子目录
-4. 文件名使用 <slug> 前缀避免命名冲突
+4. 单元测试路径必须镜像 workspace 源码路径
+5. E2E 场景文件必须使用唯一 Scenario ID，避免重复
 5. 使用 $TEST_FRAMEWORK 语法（jest/vitest）
 6. 使用 $E2E_FRAMEWORK 语法（playwright/cypress）
 7. 测试样例必须引用真实 workspace 路径，不沿用过时的 `src/*` 假设
+8. 每个 E2E 场景必须绑定 Requirement IDs 和 Task IDs
+9. 若已有 E2E 场景覆盖同一需求路径，应扩展原场景或记录替代关系，不得重复生成
 ```
 
 ### 2. 单元测试生成
 
 ```typescript
-// tests/unit/<slug>.test.ts
+// tests/unit/web/logic/calculator.test.ts
 // 使用 $TEST_FRAMEWORK 语法
 
 import { describe, it, expect, beforeEach } from '$TEST_FRAMEWORK';
-import { authService } from '../../apps/server/src/services/auth-service';
+import { calculate } from '../../../apps/web/src/logic/calculator';
 
-describe('Auth Service', () => {
-  let mockUser: TestUser;
-
-  beforeEach(() => {
-    mockUser = {
-      id: 'test-id',
-      username: 'testuser',
-      email: 'test@example.com',
-      password: 'hashed_password'
-    };
+describe('calculate', () => {
+  it('adds two numbers', () => {
+    expect(calculate(1, 2, 'add')).toBe(3);
   });
 
-  describe('login', () => {
-    it('should return token on valid credentials', async () => {
-      // TODO: Implement test
-    });
-
-    it('should throw error on invalid password', async () => {
-      // TODO: Implement test
-    });
-
-    it('should return 401 for non-existent user', async () => {
-      // TODO: Implement test
-    });
-  });
-
-  describe('validateToken', () => {
-    it('should return user for valid token', async () => {
-      // TODO: Implement test
-    });
-
-    it('should return null for expired token', async () => {
-      // TODO: Implement test
-    });
+  it('throws on division by zero', () => {
+    expect(() => calculate(1, 0, 'divide')).toThrow();
   });
 });
 ```
@@ -76,7 +52,10 @@ describe('Auth Service', () => {
 ### 3. E2E 测试生成
 
 ```typescript
-// tests/e2e/<slug>.e2e.ts
+// tests/e2e/<slug>/E2E-001-basic-calculation.e2e.ts
+// Scenario-ID: E2E-001
+// Requirement-IDs: R-001,R-003
+// Task-IDs: T-002,T-005
 // 使用 $E2E_FRAMEWORK 语法
 
 import { test, expect } from '@playwright/test';
@@ -112,7 +91,25 @@ test.describe('User Authentication Flow', () => {
 });
 ```
 
-### 4. 测试覆盖度分析
+### 4. 需求到测试映射
+
+```markdown
+## Requirement → Test Matrix
+
+| Requirement ID | Task IDs | Test Type | Test File | Scenario ID | Status |
+|----------------|----------|-----------|-----------|-------------|--------|
+| R-001 | T-001 | unit | tests/unit/web/logic/calculator.test.ts | - | ✅ |
+| R-002 | T-003 | unit | tests/unit/server/routes/calc.test.ts | - | ✅ |
+| R-003 | T-005 | e2e | tests/e2e/calculator/E2E-001-basic-calculation.e2e.ts | E2E-001 | ✅ |
+```
+
+生成规则：
+
+1. 每个 Requirement ID 至少映射一个测试
+2. 每个 E2E Scenario ID 必须唯一
+3. 若两个 E2E 场景覆盖同一 Requirement 集合和同一用户路径，应合并而不是重复生成
+
+### 5. 测试覆盖度分析
 
 生成测试覆盖度分析报告：
 
@@ -138,11 +135,9 @@ test.describe('User Authentication Flow', () => {
 
 ## E2E 测试覆盖
 
-| 用户场景 | 测试用例 | 状态 |
-|----------|----------|------|
-| 用户登录 | 成功登录、失败登录 | ✅ |
-| 用户登出 | 正常登出 | ✅ |
-| Token 过期 | 自动刷新或跳转登录 | ⏳ |
+| Scenario ID | Requirement IDs | 用户场景 | 测试文件 | 状态 |
+|-------------|-----------------|----------|----------|------|
+| E2E-001 | R-001,R-003 | 基础计算流程 | tests/e2e/calculator/E2E-001-basic-calculation.e2e.ts | ✅ |
 
 ## 待补充测试
 
@@ -161,10 +156,10 @@ test.describe('User Authentication Flow', () => {
 
 ```javascript
 // 任务 → 测试用例映射
-const taskTestMapping = {
-  'T-001': ['test_user_login_success', 'test_user_login_invalid_password'],
-  'T-002': ['test_session_creation', 'test_session_expiry'],
-  'T-003': ['test_token_generation', 'test_token_validation']
+const requirementTestMapping = {
+  'R-001': ['tests/unit/web/logic/calculator.test.ts'],
+  'R-002': ['tests/unit/server/routes/calc.test.ts'],
+  'R-003': ['tests/e2e/calculator/E2E-001-basic-calculation.e2e.ts']
 };
 ```
 
@@ -185,15 +180,16 @@ E2E_FRAMEWORK=${E2E_FRAMEWORK:-playwright}
 # 1. 读取 tasks.md，提取验收标准
 ACCEPTANCE_CRITERIA=$(cat "$TASKS_FILE" | grep -A 10 "验收标准")
 
-# 2. 生成单元测试
-cat > "tests/unit/${SLUG}.test.ts" << 'EOF'
+# 2. 生成单元测试（镜像源码目录）
+mkdir -p "tests/unit/web/logic" "tests/e2e/${SLUG}"
+cat > "tests/unit/web/logic/${SLUG}.test.ts" << 'EOF'
 // 单元测试 - 使用 $TEST_FRAMEWORK
 import { describe, it, expect, beforeEach } from '$TEST_FRAMEWORK';
 ...
 EOF
 
-# 3. 生成 E2E 测试
-cat > "tests/e2e/${SLUG}.e2e.ts" << 'EOF'
+# 3. 生成 E2E 测试（唯一 Scenario ID）
+cat > "tests/e2e/${SLUG}/E2E-001-${SLUG}.e2e.ts" << 'EOF'
 // E2E 测试 - 使用 $E2E_FRAMEWORK
 import { test, expect } from '@playwright/test';
 ...
@@ -206,7 +202,7 @@ cat > "tests/reports/${SLUG}-coverage.md" << 'EOF'
 EOF
 
 echo "✅ 测试用例生成完成"
-ls -la tests/unit/${SLUG}.test.ts tests/e2e/${SLUG}.e2e.ts
+ls -la "tests/unit/web/logic/${SLUG}.test.ts" "tests/e2e/${SLUG}/E2E-001-${SLUG}.e2e.ts"
 ```
 
 ## 错误处理
@@ -224,8 +220,8 @@ ls -la tests/unit/${SLUG}.test.ts tests/e2e/${SLUG}.e2e.ts
 
 ```
 🧪 测试用例已生成:
-📂 tests/unit/<slug>.test.ts
-📂 tests/e2e/<slug>.e2e.ts
+📂 tests/unit/web|server|packages/...
+📂 tests/e2e/<slug>/E2E-<nnn>-<scenario>.e2e.ts
 📋 详见: tests/reports/<slug>-coverage.md
 ```
 
@@ -235,8 +231,8 @@ ls -la tests/unit/${SLUG}.test.ts tests/e2e/${SLUG}.e2e.ts
   - docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/tasks.md
   - git diff（代码变更）
 - 输出：
-  - tests/unit/<slug>.test.ts
-  - tests/e2e/<slug>.e2e.ts
+  - tests/unit/web|server|packages/...
+  - tests/e2e/<slug>/E2E-<nnn>-<scenario>.e2e.ts
   - tests/reports/<slug>-coverage.md
 - 参考：
   - references/test-pipeline.md（下一步：测试执行）

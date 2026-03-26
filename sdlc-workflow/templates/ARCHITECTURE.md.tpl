@@ -18,14 +18,20 @@ apps/
 └── docs/         # 文档站点（可选）
 
 packages/
-└── */            # 共享类型、工具、配置、SDK、业务模块
+├── config/       # 始终存在
+├── env/          # 存在前端或后端时
+├── api/          # 启用 API 层时
+├── auth/         # 启用认证时
+├── db/           # 启用数据库 + ORM 时
+├── infra/        # 启用 Cloudflare / infra 时
+└── ui/           # React Web 共享 UI 时
 ```
 
 约束：
 
 - Web UI 和页面逻辑默认放在 `apps/web/src/`
 - 后端入口、路由、服务默认放在 `apps/server/src/`
-- 共享逻辑优先进入 `packages/*`
+- 共享逻辑优先进入 `packages/*`，并根据所选能力启用对应包
 - 默认不新增根目录级 `web/`、`server/`、`api/`、`frontend/`、`backend/`
 - 若偏离该结构，必须记录原因和影响范围
 

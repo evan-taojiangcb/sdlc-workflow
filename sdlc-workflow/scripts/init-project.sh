@@ -12,12 +12,15 @@ fi
 
 echo "🔧 初始化 SDLC Workflow 项目结构..."
 
-# 创建目录（v7: 取消 specs/，统一 tests/）
+# 创建目录（测试目录按 workspace 镜像，避免把测试写回源码目录）
 mkdir -p "$PROJECT_ROOT/.claude/rules"
 mkdir -p "$PROJECT_ROOT/docs/iterations"
-mkdir -p "$PROJECT_ROOT/tests/unit"
+mkdir -p "$PROJECT_ROOT/tests/unit/web"
+mkdir -p "$PROJECT_ROOT/tests/unit/server"
+mkdir -p "$PROJECT_ROOT/tests/unit/packages"
 mkdir -p "$PROJECT_ROOT/tests/e2e"
 mkdir -p "$PROJECT_ROOT/tests/reports"
+mkdir -p "$PROJECT_ROOT/tests/reports/chrome"
 
 # 复制模板（不覆盖已存在的文件）
 copy_if_not_exists() {

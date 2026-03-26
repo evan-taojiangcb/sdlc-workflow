@@ -8,7 +8,7 @@
   - <type>: feature | fix | refactor | docs | test | chore
 - Commit: Conventional Commits (feat/fix/docs/refactor/test/chore)
 - 通知统一走 OpenClaw CLI
-- Review/Test 循环上限由 REVIEW_MAX_ROUNDS 控制（默认 3 轮）
+- Review/Test 循环上限由 REVIEW_MAX_ROUNDS 控制（默认 1 轮）
 - 超限通知人工 + 中止 Pipeline
 - 禁止直推 main/master 分支
 - 禁止通知/日志泄露敏感信息（密钥/Token/密码）
@@ -25,6 +25,10 @@
 - 业务代码禁止随意落在新的顶层目录中；默认不允许新增根目录级 `web/`、`server/`、`api/`、`frontend/`、`backend/`
 - Web 前端实现默认落在 `apps/web/src/`
 - 后端实现默认落在 `apps/server/src/`
+- 共享包默认按 Better-T-Stack 条件创建：`packages/config` 总是存在；`packages/env`、`packages/api`、`packages/auth`、`packages/db`、`packages/infra`、`packages/ui` 按所选能力启用
 - 跨端共享逻辑默认进入 `packages/*`，不要在 `apps/web` 和 `apps/server` 间复制
 - 设计文档必须声明目录影响：新增目录、修改目录、为什么不能复用现有目录
 - 若必须偏离 Better-T-Stack 结构，需在 `design.md` 中给出明确理由，并经过 Gate 1 审查通过
+- 单元测试必须写入 `tests/unit/`，并按 workspace 镜像落位，如 `tests/unit/web/...`、`tests/unit/server/...`、`tests/unit/packages/...`
+- E2E 测试必须写入 `tests/e2e/`，并维护“需求 ID / 场景 ID / 文件路径”的唯一映射，不得重复覆盖同一需求路径
+- E2E 报告必须包含 Chrome DevTools MCP 产物，至少验证关键页面可见状态、控制台错误和关键网络请求

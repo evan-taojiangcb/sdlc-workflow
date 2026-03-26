@@ -129,11 +129,19 @@ git diff (代码变更)   ──────→  🔍 Gate 2: code-reviewer
 │  │   ├── server/                                         │
 │  │   └── native/                                         │
 │  ├── packages/                                           │
-│  │   └── */                                              │
+│  │   ├── config/                                         │
+│  │   ├── env/                                            │
+│  │   ├── api/                                            │
+│  │   ├── auth/                                           │
+│  │   ├── db/                                             │
+│  │   ├── infra/                                          │
+│  │   └── ui/                                             │
 │  ├── tests/                                              │
-│  │   ├── unit/                                          │
+│  │   ├── unit/web/                                      │
+│  │   ├── unit/server/                                   │
+│  │   ├── unit/packages/                                 │
 │  │   ├── e2e/                                           │
-│  │   └── reports/                                       │
+│  │   └── reports/chrome/                                │
 │  ├── .env                                               │
 │  └── .env.example                                       │
 └─────────────────────────────────────────────────────────┘
@@ -143,8 +151,9 @@ git diff (代码变更)   ──────→  🔍 Gate 2: code-reviewer
 
 ### 6.1 统一测试目录
 - 取消 `specs/` 目录，v6 中 specs/ 和 tests/ 职责重叠
-- v7 统一为 `tests/`：AI 直接生成可执行测试文件到 `tests/unit/` 和 `tests/e2e/`
-- 测试报告统一写入 `tests/reports/`
+- v7 统一为 `tests/`
+- v8 进一步要求单元测试镜像 workspace 目录，不得写回源码目录
+- 测试报告统一写入 `tests/reports/`，其中浏览器验证证据写入 `tests/reports/chrome/`
 
 ### 6.2 迭代目录命名
 - v6 扁平 `YYYY-MM-DD/` 结构导致同日多需求冲突
@@ -163,6 +172,7 @@ git diff (代码变更)   ──────→  🔍 Gate 2: code-reviewer
 - 默认遵循 Better-T-Stack 风格 monorepo：`apps/web`、`apps/server`、`packages/*`
 - Web 代码默认进入 `apps/web/src/`
 - 后端代码默认进入 `apps/server/src/`
+- `packages/config` 始终存在；`packages/env`、`api`、`auth`、`db`、`infra`、`ui` 按所选能力启用
 - 共享逻辑默认进入 `packages/*`
 - 默认不接受新增根目录级 `web/`、`api/`、`server/`
 
@@ -176,6 +186,6 @@ git diff (代码变更)   ──────→  🔍 Gate 2: code-reviewer
 | TEST_FRAMEWORK | jest | 单元测试框架 |
 | E2E_FRAMEWORK | playwright | E2E 测试框架 |
 | LINT_TOOL | eslint | Lint 工具 |
-| REVIEW_MAX_ROUNDS | 3 | 审查最大轮数 |
+| REVIEW_MAX_ROUNDS | 1 | 审查最大轮数 |
 | GIT_BRANCH_PREFIX | feat/ | Git 分支前缀 |
 | COMMIT_SCOPE | (空) | Commit scope |

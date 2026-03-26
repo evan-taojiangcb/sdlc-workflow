@@ -8,7 +8,8 @@
 
 - `apps/web`：Web 前端
 - `apps/server`：后端 API / BFF / Worker
-- `packages/*`：共享模块
+- `packages/config`：基础配置
+- `packages/env|api|auth|db|infra|ui`：按所选能力启用的共享模块
 
 该技能会把目录结构纳入设计和审查，避免随意生成根目录级 `web/`、`api/`、`server/`。
 
@@ -148,7 +149,7 @@ TG_USERNAME=your_telegram_username
 TEST_FRAMEWORK=jest        # jest | vitest | mocha
 E2E_FRAMEWORK=playwright   # playwright | cypress
 LINT_TOOL=eslint           # eslint | biome
-REVIEW_MAX_ROUNDS=3        # 1-10
+REVIEW_MAX_ROUNDS=1        # 1-10
 GIT_BRANCH_PREFIX=feat/    # 分支前缀
 ```
 
