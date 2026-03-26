@@ -15,10 +15,10 @@ PASS 或 FAIL + 问题列表
 
 ### 1. Codex CLI 调用
 
-使用 Codex CLI 进行设计审查：
+使用 Codex CLI 非交互执行设计审查：
 
 ```bash
-codex --approval-mode full-auto "审查以下设计文档和任务分解。
+codex exec --full-auto "审查以下设计文档和任务分解。
 
 对照架构规范和安全规范检查:
 1) 技术方案可行性
@@ -64,7 +64,12 @@ while [ $round -le $max_rounds ]; do
   echo "🔍 设计 Review 第 $round 轮..."
 
   # 调用 Codex 审查
-  result=$(codex --approval-mode full-auto "$PROMPT")
+  if ! result=$(codex exec --full-auto "$PROMPT" 2> /tmp/design-review-codex.stderr); then
+    echo "❌ Codex 设计审查调用失败"
+    cat /tmp/design-review-codex.stderr
+    notify_tg "⚠️ 设计 Review 调用失败，已中止 Pipeline"
+    exit 1
+  fi
 
   if echo "$result" | grep -qiE "^PASS$|^\*\*结论\*\*: PASS$|^结论: PASS$"; then
     echo "✅ 设计审查通过"
@@ -165,7 +170,11 @@ $(cat "$ARCH_FILE")
 $(cat "$SEC_FILE")
 EOF
 )"
-  result=$(codex --approval-mode full-auto "$PROMPT")
+  if ! result=$(codex exec --full-auto "$PROMPT" 2> /tmp/design-review-codex.stderr); then
+    echo "❌ Codex 设计审查调用失败"
+    cat /tmp/design-review-codex.stderr
+    exit 1
+  fi
 
   if echo "$result" | grep -qiE "^PASS$|^\*\*结论\*\*: PASS$|^结论: PASS$"; then
     echo "✅ 设计审查通过"
@@ -188,7 +197,7 @@ done
 
 | 错误场景 | 处理方式 |
 |----------|----------|
-| Codex CLI 不可用 | 立即中止 Pipeline，通知人工介入 |
+| Codex CLI 调用失败 | 记录原始 stderr，立即中止 Pipeline，通知人工介入 |
 | 审查超时 | 重试最多 3 次，仍失败则中止 |
 | .env 未设置 | 使用默认 max_rounds=1 |
 | 设计文档不存在 | 回退到步骤③ |

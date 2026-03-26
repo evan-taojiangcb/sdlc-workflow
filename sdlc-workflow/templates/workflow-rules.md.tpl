@@ -12,7 +12,7 @@
 - 超限通知人工 + 中止 Pipeline
 - 禁止直推 main/master 分支
 - 禁止通知/日志泄露敏感信息（密钥/Token/密码）
-- Codex CLI 统一使用 --approval-mode full-auto
+- Codex Gate 默认使用 `codex exec --full-auto`
 - Codex CLI 不可用时必须中止，不能自动跳过 Gate
 - 测试文件统一存放 tests/ 目录（unit/ + e2e/ + reports/）
 - 新需求处理前必须参考 docs/iterations/ 历史上下文

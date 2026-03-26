@@ -13,15 +13,15 @@
 
 ## 关键设计决策（必须保留）
 
-1. **双模型把关不可移除** — Gate 1（design-reviewer）+ Gate 2（code-reviewer），均通过 `codex --approval-mode full-auto` 调用
+1. **双模型把关不可移除** — Gate 1（design-reviewer）+ Gate 2（code-reviewer），均通过 `codex exec --full-auto` 调用
 2. **用户级元 Skill** — 安装到 `~/.agents/skills/sdlc-workflow/`，不是项目级 `.claude/skills/`
 3. **入口命令 `/sdlc-workflow`** — 不是 `/start-workflow`
 4. **统一 tests/ 目录** — 无独立 specs/ 目录，AI 生成的测试直接写入 `tests/unit/` 和 `tests/e2e/`
-5. **迭代目录格式** — `docs/iterations/YYYY-MM-DD/<slug>-<type>/`（如 `user-login-feature/`）
+5. **迭代目录格式** — `docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/`（如 `001-user-login-feature/`）
 6. **CLAUDE.md 引入 iterations** — 模板含 `## 迭代历史` 章节，引用 `docs/iterations/`
 7. **TG_USERNAME 自动检测** — TG/OpenClaw 触发时从 `OPENCLAW_TRIGGER_USER` 环境变量自动获取
 8. **TG 通知命令** — `openclaw message send --channel telegram --target "$TG_USERNAME" --message "$MSG"`
-9. **循环上限** — 每个 Gate/Test ≤ `$REVIEW_MAX_ROUNDS`（默认 3），超限通知人工+中止
+9. **循环上限** — 每个 Gate/Test ≤ `$REVIEW_MAX_ROUNDS`（默认 1），超限通知人工+中止
 10. **.env 完整注释** — 所有参数含类型、枚举值、默认值、示例
 
 ## 已生成的文件清单（21 个）
@@ -77,7 +77,7 @@ Codex 请重点审查以下方面：
 
 ### 3. Templates 正确性
 - [ ] CLAUDE.md.tpl 是否包含 `## 迭代历史` 章节和 `docs/iterations/` 引用
-- [ ] workflow-rules.md.tpl 迭代目录格式是否为 `YYYY-MM-DD/<slug>-<type>/`
+- [ ] workflow-rules.md.tpl 迭代目录格式是否为 `YYYY-MM-DD/<seq>-<slug>-<type>/`
 - [ ] env.example.tpl 是否所有参数都有完整注释、类型、枚举值、默认值、示例
 - [ ] env.example.tpl 中 TG_USERNAME 是否说明了自动检测机制
 
@@ -89,7 +89,7 @@ Codex 请重点审查以下方面：
 
 ### 5. 架构一致性
 - [ ] 所有文件中 TG 通知命令是否统一为 `openclaw message send --channel telegram --target "$TG_USERNAME" --message "$MSG"`
-- [ ] 所有 iterations 路径引用是否为 `docs/iterations/YYYY-MM-DD/<slug>-<type>/`（非旧版平坦结构）
+- [ ] 所有 iterations 路径引用是否为 `docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/`（非旧版平坦结构）
 - [ ] 所有测试路径是否为 `tests/`（非 specs/）
 - [ ] Git 分支命名是否使用 `${GIT_BRANCH_PREFIX}<slug>-YYYY-MM-DD`
 

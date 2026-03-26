@@ -15,10 +15,10 @@ PASS 或 FAIL + 问题列表
 
 ### 1. Codex CLI 调用
 
-使用 Codex CLI 进行代码审查：
+使用 Codex CLI 非交互执行代码审查：
 
 ```bash
-codex --approval-mode full-auto "审查以下代码变更。
+codex exec --full-auto "审查以下代码变更。
 
 检查:
 1) 代码质量与可读性
@@ -136,7 +136,12 @@ $DIFF
 $(cat "$TASKS_FILE")
 EOF
 )"
-  result=$(codex --approval-mode full-auto "$PROMPT")
+  if ! result=$(codex exec --full-auto "$PROMPT" 2> /tmp/code-review-codex.stderr); then
+    echo "❌ Codex 代码审查调用失败"
+    cat /tmp/code-review-codex.stderr
+    notify_tg "⚠️ Code Review 调用失败，已中止 Pipeline"
+    exit 1
+  fi
 
   if echo "$result" | grep -qiE "^PASS$|^\*\*结论\*\*: PASS$|^结论: PASS$"; then
     echo "✅ Code Review 通过"
@@ -235,7 +240,11 @@ $(cat docs/SECURITY.md)
 EOF
 )"
 
-  result=$(codex --approval-mode full-auto "$PROMPT")
+  if ! result=$(codex exec --full-auto "$PROMPT" 2> /tmp/code-review-codex.stderr); then
+    echo "❌ Codex 代码审查调用失败"
+    cat /tmp/code-review-codex.stderr
+    exit 1
+  fi
 
   if echo "$result" | grep -qiE "^PASS$|^\*\*结论\*\*: PASS$|^结论: PASS$"; then
     echo "✅ Code Review 通过"
@@ -258,7 +267,7 @@ done
 
 | 错误场景 | 处理方式 |
 |----------|----------|
-| Codex CLI 不可用 | 立即中止 Pipeline，通知人工介入 |
+| Codex CLI 调用失败 | 记录原始 stderr，立即中止 Pipeline，通知人工介入 |
 | git diff 为空 | 警告：无可审查代码 |
 | 审查超时 | 重试最多 3 次，仍失败则中止 |
 | 严重安全漏洞 | 高优先级通知，立即修复 |

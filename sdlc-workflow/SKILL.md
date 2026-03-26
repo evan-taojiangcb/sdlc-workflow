@@ -190,7 +190,7 @@ MKDIR -p "$ITER_DIR"
 ```
 round=1
 WHILE round <= REVIEW_MAX_ROUNDS:
-  result=$(codex --approval-mode full-auto "审查设计...")
+  result=$(codex exec --full-auto "审查设计...")
   IF result == PASS:
     通知 TG: 🔍 设计 Review: PASS ✅
     BREAK
@@ -222,7 +222,7 @@ WHILE round <= REVIEW_MAX_ROUNDS:
 ```
 round=1
 WHILE round <= REVIEW_MAX_ROUNDS:
-  result=$(codex --approval-mode full-auto "审查代码...")
+  result=$(codex exec --full-auto "审查代码...")
   IF result == PASS:
     通知 TG: 🔍 Code Review: PASS ✅
     BREAK
