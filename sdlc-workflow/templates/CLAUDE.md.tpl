@@ -13,6 +13,7 @@
 - 参考 docs/ARCHITECTURE.md 了解架构设计
 - 参考 docs/SECURITY.md 了解安全规范
 - 参考 docs/CODING_GUIDELINES.md 了解编码规范
+- 若项目为 existing project，先参考 `docs/PROJECT_BASELINE.md`、`docs/EXISTING_STRUCTURE.md`、`docs/TEST_BASELINE.md`
 - 使用 Conventional Commits 格式提交
 - 默认遵循 Better-T-Stack 风格目录：
   - `apps/web/src` 放 Web 前端代码
@@ -38,6 +39,8 @@ docs/iterations/
 - 与已有设计冲突
 - 重复实现已存在的功能
 - 引入与历史决策矛盾的方案
+
+**若项目已经有既有技术架构，不得把它当 fresh project 重建目录。** 必须先尊重 baseline，再决定是否需要结构调整。
 
 ## SDLC Workflow
 本项目使用 sdlc-workflow 技能进行自动化开发。

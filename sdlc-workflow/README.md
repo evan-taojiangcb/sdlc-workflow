@@ -21,6 +21,7 @@
 - **双模型审核**：Claude Code 生成 + Codex CLI 独立审查
 - **TG 通知**：关键节点实时推送 Telegram 通知
 - **自动初始化**：首次运行自动检测并生成项目结构
+- **旧项目接入模式**：existing project 先做 baseline intake，再进入需求流程
 - **TG_USERNAME 自动检测**：TG/OpenClaw 触发时自动获取用户名
 - **iterations 可追溯**：完整保留每次迭代的 requirements/design/tasks
 
@@ -65,12 +66,25 @@ git clone https://github.com/<org>/sdlc-workflow ~/.agents/skills/sdlc-workflow
 ```
 
 自动流程：
-1. 检测项目未初始化 → 执行 `init-project.sh` → 生成 `.claude/` + `docs/` + `tests/` + `.env.example`
-2. 检测 TG_USERNAME：
+1. 识别是 fresh project 还是 existing project
+2. 检测项目未初始化 → 执行 `init-project.sh` → 生成 `.claude/` + `docs/` + `tests/` + `.env.example`
+3. 若为 existing project → 先生成 `docs/PROJECT_BASELINE.md`、`docs/EXISTING_STRUCTURE.md`、`docs/TEST_BASELINE.md`
+4. 检测 TG_USERNAME：
    - 若 TG 触发且存在 `OPENCLAW_TRIGGER_USER` → 自动创建 `.env`（若缺失）并写入
    - 若手动触发 → 提示用户 `cp .env.example .env` → 编辑 `.env` 设置 `TG_USERNAME`
-3. 配置完成后 → 进入完整 Pipeline
-4. 产物写入 `docs/iterations/2026-03-25/001-user-login-feature/`
+5. 配置完成后 → 进入完整 Pipeline
+6. 产物写入 `docs/iterations/2026-03-25/001-user-login-feature/`
+
+### 接入已存在项目
+
+如果项目已经存在技术架构和业务代码，workflow 不会把它当 fresh project 重建目录，而是先进入 existing project intake：
+
+1. 盘点现有 workspace、脚本、测试和环境依赖
+2. 生成：
+   - `docs/PROJECT_BASELINE.md`
+   - `docs/EXISTING_STRUCTURE.md`
+   - `docs/TEST_BASELINE.md`
+3. 后续 requirements / design / tasks 必须基于 baseline，而不是自由发挥重构原项目
 
 ### 后续使用
 
@@ -88,8 +102,12 @@ git clone https://github.com/<org>/sdlc-workflow ~/.agents/skills/sdlc-workflow
 graph TD
     START["/sdlc-workflow <input>"] --> INIT{项目已初始化?}
     INIT -->|否| INIT_RUN["运行 init-project.sh"]
-    INIT_RUN --> TG_DETECT
-    INIT -->|是| TG_DETECT
+    INIT_RUN --> MODE{"fresh 还是 existing?"}
+    INIT -->|是| MODE
+
+    MODE -->|fresh| TG_DETECT
+    MODE -->|existing| INTAKE["existing-project-intake"]
+    INTAKE --> TG_DETECT
 
     TG_DETECT["TG_USERNAME 自动检测"] --> S1["① requirements-ingestion"]
     S1 --> S2["② requirements-clarifier"]
@@ -113,6 +131,7 @@ graph TD
 ├── SKILL.md                    # 入口（Pipeline 编排）
 ├── references/                 # 12 个步骤详细规范
 │   ├── pipeline-overview.md
+│   ├── existing-project-intake.md
 │   ├── requirements-ingestion.md
 │   ├── requirements-clarifier.md
 │   ├── design-generator.md

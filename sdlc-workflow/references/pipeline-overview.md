@@ -6,8 +6,12 @@
 graph TD
     START["/sdlc-workflow <input>"] --> INIT{项目已初始化?}
     INIT -->|否| INIT_RUN["运行 init-project.sh"]
-    INIT_RUN --> TG_DETECT
-    INIT -->|是| TG_DETECT
+    INIT_RUN --> MODE{"fresh 还是 existing?"}
+    INIT -->|是| MODE
+
+    MODE -->|fresh| TG_DETECT
+    MODE -->|existing| INTAKE["existing-project-intake<br/>→ PROJECT_BASELINE / EXISTING_STRUCTURE / TEST_BASELINE"]
+    INTAKE --> TG_DETECT
 
     TG_DETECT["TG_USERNAME 自动检测<br/>OPENCLAW_TRIGGER_USER → .env"]
     TG_DETECT --> ENV_CHECK{".env 配置完整?"}
@@ -55,7 +59,7 @@ graph TD
 
 | 步骤 | 名称 | Pattern | 输入 | 输出 | 工具 |
 |------|------|---------|------|------|------|
-| ⓪ | 初始化 + 配置 | — | 项目目录 | 初始化项目结构 | init-project.sh |
+| ⓪ | 初始化 + 模式识别 | — | 项目目录 | 初始化结构 + existing baseline | init-project.sh + existing-project-intake |
 | ① | requirements-ingestion | Router + Tool Wrapper | 文本/file/URL | requirements.md | Read + Chrome DevTools MCP |
 | ② | requirements-clarifier | Evaluator | requirements.md | requirements.md (标注版) | Claude Code 内置 |
 | ③ | design-generator | Generator | requirements.md + ARCHITECTURE.md + SECURITY.md + 历史 | design.md | Claude Code |
@@ -78,6 +82,10 @@ graph TD
 | **Parallelization** | 步骤⑨ 内 Stage 2 + Stage 3 可并行执行 |
 | **Orchestrator-Workers** | SKILL.md = Orchestrator；12 个 reference = Workers |
 | **Evaluator-Optimizer** | design-reviewer + code-reviewer + test-pipeline 三处评估-优化循环 |
+
+对 existing project，还增加一个前置基线模式：
+
+- existing-project-intake：先确认现有结构和约束，再允许进入需求与设计
 
 ## 4. 双模型把关架构
 
@@ -118,6 +126,9 @@ git diff (代码变更)   ──────→  🔍 Gate 2: code-reviewer
 │  │   ├── ARCHITECTURE.md                                │
 │  │   ├── SECURITY.md                                    │
 │  │   ├── CODING_GUIDELINES.md                           │
+│  │   ├── PROJECT_BASELINE.md                            │
+│  │   ├── EXISTING_STRUCTURE.md                          │
+│  │   ├── TEST_BASELINE.md                               │
 │  │   └── iterations/                                    │
 │  │       └── YYYY-MM-DD/                                │
 │  │           └── <seq>-<slug>-<type>/                   │
@@ -148,6 +159,15 @@ git diff (代码变更)   ──────→  🔍 Gate 2: code-reviewer
 ```
 
 ## 6. 关键设计决策
+
+### 6.0 Existing Project Intake
+- existing project 不能被当成 fresh project 直接套模板
+- existing project mode 必须先产出：
+  - `docs/PROJECT_BASELINE.md`
+  - `docs/EXISTING_STRUCTURE.md`
+  - `docs/TEST_BASELINE.md`
+- 后续 requirements / design / tasks 必须基于 intake 结论，而不是模型猜测
+- 只有在 `design.md` 明确批准时，才允许调整既有技术架构
 
 ### 6.1 统一测试目录
 - 取消 `specs/` 目录，v6 中 specs/ 和 tests/ 职责重叠

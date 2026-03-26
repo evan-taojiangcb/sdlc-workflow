@@ -16,6 +16,11 @@
 - Codex CLI 不可用时必须中止，不能自动跳过 Gate
 - 测试文件统一存放 tests/ 目录（unit/ + e2e/ + reports/）
 - 新需求处理前必须参考 docs/iterations/ 历史上下文
+- 若项目已存在业务代码或工程结构，则进入 existing project mode，必须先生成：
+  - `docs/PROJECT_BASELINE.md`
+  - `docs/EXISTING_STRUCTURE.md`
+  - `docs/TEST_BASELINE.md`
+- existing project mode 下，未经 `design.md` 明确批准，不得调整既有技术架构或重排 workspace
 - 全栈项目默认遵循 Better-T-Stack 风格 monorepo：
   - `apps/web`：Web 前端应用
   - `apps/server`：后端 API / BFF / Worker 入口
@@ -28,6 +33,7 @@
 - 共享包默认按 Better-T-Stack 条件创建：`packages/config` 总是存在；`packages/env`、`packages/api`、`packages/auth`、`packages/db`、`packages/infra`、`packages/ui` 按所选能力启用
 - 跨端共享逻辑默认进入 `packages/*`，不要在 `apps/web` 和 `apps/server` 间复制
 - 设计文档必须声明目录影响：新增目录、修改目录、为什么不能复用现有目录
+- existing project 的设计文档必须引用 baseline，说明本次需求是沿用既有结构还是批准的结构调整
 - 若必须偏离 Better-T-Stack 结构，需在 `design.md` 中给出明确理由，并经过 Gate 1 审查通过
 - 单元测试必须写入 `tests/unit/`，并按 workspace 镜像落位，如 `tests/unit/web/...`、`tests/unit/server/...`、`tests/unit/packages/...`
 - E2E 测试必须写入 `tests/e2e/`，并维护“需求 ID / 场景 ID / 文件路径”的唯一映射，不得重复覆盖同一需求路径

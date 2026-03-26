@@ -36,12 +36,20 @@ metadata:
 
 检查当前项目是否已初始化 SDLC 工作流结构：
 
-1. 检测 `.claude/CLAUDE.md` 和 `docs/ARCHITECTURE.md` 是否存在
-2. 若两者都存在 → 项目已初始化，跳过，直接进入 Part 2
-3. 若任一不存在 → 执行初始化：
+1. 先判断当前项目是 fresh project 还是 existing project：
+   - 若已存在 `apps/`、`packages/`、`src/`、`package.json`、`pnpm-workspace.yaml`、`turbo.json`、`.git/` 等业务/工程结构 → existing project
+   - 若目录基本为空，仅准备首次接入 workflow → fresh project
+2. 检测 `.claude/CLAUDE.md` 和 `docs/ARCHITECTURE.md` 是否存在
+3. 若两者都存在 → 项目已初始化，跳过，直接进入 Part 2
+4. 若任一不存在 → 执行初始化：
    - 运行 `bash ~/.agents/skills/sdlc-workflow/scripts/init-project.sh .`
    - 生成项目结构（.claude/, docs/, tests/, .env.example）
    - 提醒用户：若 `.env` 不存在，从 `.env.example` 复制并填写 TG_USERNAME
+5. 若判定为 existing project，则初始化后必须先执行 `references/existing-project-intake.md`：
+   - 生成 `docs/PROJECT_BASELINE.md`
+   - 生成 `docs/EXISTING_STRUCTURE.md`
+   - 生成 `docs/TEST_BASELINE.md`
+   - 在基线完成前，不得直接进入 requirements/design/tasks
 
 ## TG_USERNAME 自动检测
 
@@ -100,7 +108,7 @@ Pipeline 启动时按以下优先级确定 TG_USERNAME：
 
 | 步骤 | 名称 | 说明 |
 |------|------|------|
-| ⓪ | 初始化 + 配置 | 检测项目结构 → init-project.sh → TG_USERNAME → .env → 迭代目录 |
+| ⓪ | 初始化 + 模式识别 | fresh/existing 分流 → init-project.sh → existing intake → TG_USERNAME → .env → 迭代目录 |
 | ① | requirements-ingestion | 识别输入类型 → 提取/读取/解析 → requirements.md |
 | ② | requirements-clarifier | 逐条分析置信度，标注确认/假设/提问 |
 | ③ | design-generator | 生成 design.md（引用历史 iterations） |
@@ -117,8 +125,16 @@ Pipeline 启动时按以下优先级确定 TG_USERNAME：
 
 #### ⓪ 初始化
 ```
+MODE=$(detect_project_mode)  # fresh | existing
+
 IF NOT (.claude/CLAUDE.md AND docs/ARCHITECTURE.md):
   RUN init-project.sh
+
+IF MODE == existing:
+  RUN existing-project-intake
+  REQUIRE docs/PROJECT_BASELINE.md
+  REQUIRE docs/EXISTING_STRUCTURE.md
+  REQUIRE docs/TEST_BASELINE.md
 
 IF OPENCLAW_TRIGGER_USER:
   ENSURE .env EXISTS (copy from .env.example if missing)
@@ -161,7 +177,9 @@ MKDIR -p "$ITER_DIR"
 
 #### ③ design-generator
 - 读取：requirements.md + docs/ARCHITECTURE.md + docs/SECURITY.md + docs/iterations/（历史）
+- 若为 existing project，额外读取：`docs/PROJECT_BASELINE.md` + `docs/EXISTING_STRUCTURE.md` + `docs/TEST_BASELINE.md`
 - 设计必须声明代码落位：默认遵循 Better-T-Stack 风格 `apps/web` / `apps/server` / 条件启用的 `packages/*`
+- 若为 existing project，必须明确说明“沿用既有结构”还是“本轮经批准的结构调整”
 - 输出：docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/design.md
 
 #### ④ task-generator

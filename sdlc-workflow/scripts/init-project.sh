@@ -21,6 +21,7 @@ mkdir -p "$PROJECT_ROOT/tests/unit/packages"
 mkdir -p "$PROJECT_ROOT/tests/e2e"
 mkdir -p "$PROJECT_ROOT/tests/reports"
 mkdir -p "$PROJECT_ROOT/tests/reports/chrome"
+mkdir -p "$PROJECT_ROOT/tests/reports/webmcp"
 
 # 复制模板（不覆盖已存在的文件）
 copy_if_not_exists() {
