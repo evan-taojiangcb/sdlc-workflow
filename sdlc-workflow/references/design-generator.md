@@ -1,0 +1,253 @@
+# 步骤 ③: Design Generator — 技术设计文档生成
+
+## 输入
+
+1. `docs/iterations/YYYY-MM-DD/<slug>-<type>/requirements.md`
+2. `docs/ARCHITECTURE.md`
+3. `docs/SECURITY.md`
+4. `docs/iterations/`（历史迭代，用于上下文）
+
+## 输出
+
+`docs/iterations/YYYY-MM-DD/<slug>-<type>/design.md`
+
+## 详细行为
+
+### 1. 读取历史上下文
+
+在生成新设计前，读取最近 N 个迭代的 design.md，了解已有设计：
+
+```bash
+# 读取最近 3 个迭代的设计文档
+HISTORY_DIR="docs/iterations/"
+LATEST_DESIGNS=$(find "$HISTORY_DIR" -name "design.md" -type f \
+  | sort -r | head -3 | xargs -I{} cat {})
+
+# 分析历史设计要点
+# - 已有模块和组件
+# - 设计模式和约定
+# - 已有的技术决策
+```
+
+### 2. 设计文档结构
+
+生成的 design.md 包含以下章节：
+
+```markdown
+# 技术设计文档
+
+## 基本信息
+
+- **迭代目录**: docs/iterations/<date>/<slug>-<type>/
+- **生成时间**: YYYY-MM-DD HH:mm:ss
+- **基于需求**: requirements.md
+
+## 1. 技术方案概要
+
+### 1.1 概述
+<技术方案的简要描述，2-3 句话>
+
+### 1.2 目标
+- <目标 1>
+- <目标 2>
+
+### 1.3 非目标（Scope 外）
+- <不包含的目标 1>
+- <不包含的目标 2>
+
+## 2. 数据模型设计
+
+### 2.1 实体关系图
+```
+<Entity Relationship Diagram>
+```
+
+### 2.2 主要数据模型
+
+#### User（用户）
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | UUID | 主键 |
+| username | VARCHAR(50) | 用户名 |
+| email | VARCHAR(255) | 邮箱 |
+| created_at | TIMESTAMP | 创建时间 |
+
+#### Session（会话）
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | UUID | 主键 |
+| user_id | UUID | 外键 |
+| token | VARCHAR(255) | 会话 token |
+| expires_at | TIMESTAMP | 过期时间 |
+
+## 3. API 接口设计
+
+### 3.1 接口列表
+
+| 方法 | 路径 | 说明 | 认证 |
+|------|------|------|------|
+| POST | /api/auth/login | 用户登录 | 否 |
+| POST | /api/auth/logout | 用户登出 | 是 |
+| GET | /api/user/profile | 获取用户信息 | 是 |
+
+### 3.2 详细接口规范
+
+#### POST /api/auth/login
+
+**请求**:
+```json
+{
+  "username": "string",
+  "password": "string"
+}
+```
+
+**响应 (200)**:
+```json
+{
+  "token": "string",
+  "expires_at": "ISO8601"
+}
+```
+
+**错误响应**:
+```json
+{
+  "error": "INVALID_CREDENTIALS",
+  "message": "用户名或密码错误"
+}
+```
+
+## 4. 安全考量
+
+### 4.1 认证
+- Token 认证，JWT RS256 签名
+- Token 有效期: 24 小时
+- Refresh Token: 7 天
+
+### 4.2 授权
+- RBAC 角色模型
+- 权限检查中间件
+
+### 4.3 数据保护
+- 敏感字段加密存储
+- HTTPS 强制
+- 输入验证和清洗
+
+## 5. 依赖关系
+
+### 5.1 内部依赖
+- auth module → user module
+- session module → auth module
+
+### 5.2 外部依赖
+- PostgreSQL 14+
+- Redis 6+
+- External SMS Gateway
+
+### 5.3 依赖管理
+```bash
+# 所需 npm 包
+npm install bcryptjs jsonwebtoken pg redis
+npm install -D @types/bcryptjs @types/jsonwebtoken
+```
+
+## 6. 风险评估
+
+| 风险 | 概率 | 影响 | 缓解措施 |
+|------|------|------|----------|
+| 并发登录处理 | 中 | 中 | Redis Session 统一管理 |
+| Token 泄露 | 低 | 高 | HTTPS + 安全存储 |
+| SQL 注入 | 低 | 高 | 参数化查询 + ORM |
+
+## 7. 实施计划
+
+### Phase 1: 基础设施
+- [ ] 数据库迁移脚本
+- [ ] Redis 连接配置
+- [ ] 基础认证中间件
+
+### Phase 2: 核心功能
+- [ ] 用户注册/登录 API
+- [ ] Session 管理
+- [ ] 权限控制
+
+### Phase 3: 完善
+- [ ] 错误处理
+- [ ] 日志记录
+- [ ] 测试
+
+## 8. 设计决策记录
+
+| 日期 | 决策 | 理由 |
+|------|------|------|
+| YYYY-MM-DD | 选择 JWT 而非 Session | 无状态，易于水平扩展 |
+```
+
+## 3. 设计生成提示
+
+Claude Code 在生成设计时应参考：
+
+```
+在生成设计时，请考虑：
+1. 与现有架构的一致性
+2. 安全性优先
+3. 可扩展性
+4. 简单性（避免过度设计）
+5. 已有历史迭代中的设计模式
+```
+
+## 命令模板
+
+```bash
+# 1. 读取输入
+REQ_FILE="docs/iterations/$DATE/$SLUG-$TYPE/requirements.md"
+ARCH_FILE="docs/ARCHITECTURE.md"
+SEC_FILE="docs/SECURITY.md"
+
+# 2. 读取历史上下文（最近 3 个迭代）
+HISTORY=$(find docs/iterations/ -name "design.md" -type f \
+  | sort -r | head -3 | xargs -I{} cat {})
+
+# 3. 生成设计文档
+cat > "docs/iterations/$DATE/$SLUG-$TYPE/design.md" << 'TEMPLATE'
+# 技术设计文档
+...
+TEMPLATE
+
+# 4. 验证设计文档完整性
+if ! grep -q "## 技术方案概要" "$DESIGN_FILE"; then
+  echo "ERROR: design.md 缺少必需章节"
+  exit 1
+fi
+```
+
+## 错误处理
+
+| 错误场景 | 处理方式 |
+|----------|----------|
+| requirements.md 不存在 | 回退到步骤① |
+| ARCHITECTURE.md 不存在 | 跳过，生成简化版设计 |
+| 历史迭代读取失败 | 记录日志，使用空上下文继续 |
+| 设计文档生成失败 | 保留部分内容，提示用户补充 |
+
+## TG 通知文案
+
+设计生成完成后（供 design-reviewer 阶段参考）：
+
+```
+🎨 设计文档已生成: docs/iterations/<date>/<slug>-<type>/design.md
+📋 包含: 技术方案、API 设计、数据模型、安全考量
+```
+
+## 相关文件
+
+- 输入：
+  - requirements.md
+  - docs/ARCHITECTURE.md
+  - docs/SECURITY.md
+  - docs/iterations/*/design.md（历史）
+- 输出：docs/iterations/YYYY-MM-DD/<slug>-<type>/design.md
+- 参考：
+  - references/task-generator.md（下一步）
+  - references/design-reviewer.md（Gate 1）
