@@ -255,7 +255,7 @@ v8 的答案是：这些都必须写成规则，不交给模型自由发挥。
 | 6 | Claude 开发 | Executor | 代码变更 |
 | 7 | test-generator | Generator | unit/e2e/report |
 | 8 | code-reviewer | Evaluator-Optimizer | PASS / FAIL |
-| 9 | test-pipeline | Evaluator-Optimizer | 测试报告 + Chrome/WebMCP 证据 |
+| 9 | test-pipeline | Evaluator-Optimizer | 测试报告 + Chrome/WebMCP 最终交互证据 |
 | 10 | docs-updater | Tool Wrapper | 更新后的文档 |
 | 11 | git-committer | Tool Wrapper | branch / commit / PR |
 | 12 | final notify | Notification | TG 消息 |
@@ -457,7 +457,7 @@ Contract:
 
 Contract:
 
-1. 默认串行执行 lint -> unit -> Playwright -> Chrome DevTools MCP -> WebMCP
+1. 默认串行执行 lint -> unit -> Playwright 预检 -> Chrome DevTools MCP + WebMCP 最终交互测试
 2. 并行测试只能显式开启
 3. `set -u` 下不能依赖未初始化变量
 4. 输出必须落到 `tests/reports/`
@@ -674,7 +674,7 @@ v8 相比 v7 的关键增强：
 3. Gate 1 能拦截目录结构偏差
 4. Gate 2 能拦截实际文件落位偏差
 5. 样板项目验证报告只引用真实存在文件
-6. E2E 报告包含 Chrome DevTools MCP 证据
+6. 最终测试报告以 Chrome DevTools MCP + WebMCP 交互证据为准
 7. handoff 不再把推断写成事实
 8. 恢复工作不依赖单个 CLI 会话
 

@@ -39,7 +39,7 @@ graph TD
     S7 --> S8["⑧ code-reviewer · Gate 2<br/>Codex CLI 审查代码"]
     S8 --> TG4["📱 TG: Code Review 结果"]
     TG4 -->|FAIL & round ≤ N| S6
-    TG4 -->|PASS| S9["⑨ test-pipeline<br/>lint → unit → Playwright → Chrome MCP → WebMCP"]
+    TG4 -->|PASS| S9["⑨ test-pipeline<br/>lint → unit → Playwright 预检 → Chrome MCP + WebMCP 最终交互测试"]
     TG4 -->|"FAIL & round > N"| ESCALATE
 
     S9 --> TG5["📱 TG: 测试报告"]
@@ -64,7 +64,7 @@ graph TD
 | ⑥ | Claude Code 开发 | — | tasks.md | 代码变更 | Claude Code |
 | ⑦ | test-generator | Generator | tasks.md + git diff | tests/unit/ + tests/e2e/ | Claude Code |
 | ⑧ | code-reviewer | Evaluator-Optimizer | git diff + CODING_GUIDELINES.md + SECURITY.md | PASS/FAIL | Codex CLI |
-| ⑨ | test-pipeline | Pipeline | tests/ | tests/reports/ | Lint + Playwright + Chrome DevTools MCP + WebMCP |
+| ⑨ | test-pipeline | Pipeline | tests/ | tests/reports/ | Lint + Playwright 预检 + Chrome DevTools MCP + WebMCP 最终验收 |
 | ⑩ | docs-updater | Tool Wrapper | 代码变更 + 迭代产物 | 更新后的文档 | Claude Code |
 | ⑪ | git-committer | Tool Wrapper | 所有变更 | PR URL | Git + GitHub CLI |
 | ⑫ | 最终通知 | — | PR URL + 变更摘要 | TG 消息 | OpenClaw CLI |

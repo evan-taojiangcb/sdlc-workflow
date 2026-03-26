@@ -78,7 +78,7 @@ case "$TEST_FRAMEWORK" in
 esac
 ```
 
-### 4. Stage 3: E2E Tests
+### 4. Stage 3: Playwright 预检
 
 ```bash
 echo "🎭 运行 Playwright E2E 测试..."
@@ -89,9 +89,9 @@ if [ -f "playwright-report/index.html" ]; then
 fi
 ```
 
-### 5. Stage 4: Chrome DevTools MCP 验证
+### 5. Stage 4: Chrome DevTools MCP 最终交互测试
 
-E2E 通过后，必须再用 Chrome DevTools MCP 做一次浏览器层验证，至少检查：
+Playwright 预检通过后，必须再用 Chrome DevTools MCP 做一次最终浏览器层交互测试，至少检查：
 
 1. 关键页面可见状态是否符合预期
 2. Console 中是否存在未处理错误
@@ -103,9 +103,9 @@ echo "🧭 使用 Chrome DevTools MCP 验证关键用户路径..."
 # 打开页面 -> 执行动作 -> 获取 snapshot/console/network -> 写入 tests/reports/chrome/<slug>-<scenario>.md
 ```
 
-### 6. Stage 5: WebMCP 验证
+### 6. Stage 5: WebMCP 最终交互测试
 
-Chrome DevTools MCP 通过后，必须再用 WebMCP 复核关键交互链路，至少检查：
+Chrome DevTools MCP 通过后，必须再用 WebMCP 复核最终关键交互链路，至少检查：
 
 1. 关键表单输入/按钮点击链路
 2. 用户可见反馈是否正确
@@ -165,7 +165,7 @@ cat > "$REPORT_FILE" << 'EOF'
 - **执行时间**: YYYY-MM-DD HH:mm:ss
 - **迭代**: <seq>-<slug>-<type>
 - **测试框架**: $TEST_FRAMEWORK
-- **E2E 框架**: Playwright
+- **Playwright**: precheck only
 - **Chrome DevTools MCP**: required
 - **WebMCP**: required
 
@@ -175,7 +175,7 @@ cat > "$REPORT_FILE" << 'EOF'
 |------|------|-----------|--------|
 | Lint | ✅ | - | - |
 | Unit | ✅ | 25/25 | 85% |
-| E2E | ✅ | 8/8 | - |
+| Playwright 预检 | ✅ | 8/8 | - |
 | Chrome MCP | ✅ | 1/1 | 页面、控制台、网络已验证 |
 | WebMCP | ✅ | 1/1 | 关键交互链路已复核 |
 
@@ -192,7 +192,7 @@ cat > "$REPORT_FILE" << 'EOF'
 
 ## 建议
 
-<!-- 改进建议 -->
+最终通过结论只能依据 Chrome DevTools MCP + WebMCP 两层交互验证给出。
 EOF
 
 echo "📋 测试报告: $REPORT_FILE"

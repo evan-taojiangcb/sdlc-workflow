@@ -109,7 +109,7 @@ Pipeline 启动时按以下优先级确定 TG_USERNAME：
 | ⑥ | Claude Code 开发 | 按 tasks.md 逐任务实现代码 |
 | ⑦ | test-generator | 生成 tests/unit/ + tests/e2e/ |
 | ⑧ | code-reviewer | **Gate 2**: Codex CLI 审查代码 |
-| ⑨ | test-pipeline | lint → unit → Playwright → Chrome DevTools MCP → WebMCP |
+| ⑨ | test-pipeline | lint → unit → Playwright 预检 → Chrome DevTools MCP / WebMCP 最终交互测试 |
 | ⑩ | docs-updater | 更新文档 + CLAUDE.md iterations 引用 |
 | ⑪ | git-committer | branch → commit → push → PR |
 
@@ -292,7 +292,7 @@ openclaw message send --channel telegram --target "$TG_USERNAME" --message "$MSG
 9. **渐进式加载**：SKILL.md ≤500 行，详细规范按需从 references/ 加载
 10. **模板不覆盖**：init-project.sh 不覆盖已存在的文件
 11. **统一测试目录**：单元测试只能写入 `tests/unit/web|server|packages`，E2E 只能写入 `tests/e2e/`，报告写入 `tests/reports/`
-13. **E2E 证据要求**：关键用户路径的最终报告必须包含 Playwright、Chrome DevTools MCP 和 WebMCP 三层验证结果
+13. **E2E 证据要求**：关键用户路径的最终报告必须以 Chrome DevTools MCP 和 WebMCP 的交互验证结果为准；Playwright 仅作为预检
 14. **需求到测试唯一映射**：requirements、tasks、E2E 场景必须有唯一 ID 映射，禁止重复覆盖同一需求路径
 12. **迭代可追溯**：docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/
 13. **审查门禁不可降级**：Codex CLI 不可用时必须中止，不能自动跳过 Gate
