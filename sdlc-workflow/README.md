@@ -33,7 +33,8 @@
 | Codex CLI | 双模型审查 (Gate 1 + Gate 2) | `npm i -g @openai/codex` |
 | GitHub CLI (gh) | PR 创建 | `brew install gh` → `gh auth login` |
 | OpenClaw CLI | TG 通知 | `npm i -g openclaw` |
-| Chrome DevTools MCP | URL 内容提取 + E2E 测试 | 已在用户环境配置 |
+| Chrome DevTools MCP | URL 内容提取 + 浏览器验证 | 已在用户环境配置 |
+| WebMCP / Playwright Browser MCP | 关键交互链路验证 | 已在用户环境配置 |
 
 ---
 
@@ -147,7 +148,7 @@ TG_USERNAME=your_telegram_username
 
 # 可选（默认值）
 TEST_FRAMEWORK=jest        # jest | vitest | mocha
-E2E_FRAMEWORK=playwright   # playwright | cypress
+E2E_FRAMEWORK=playwright   # 固定使用 Playwright，配合 Chrome DevTools MCP + WebMCP
 LINT_TOOL=eslint           # eslint | biome
 REVIEW_MAX_ROUNDS=1        # 1-10
 GIT_BRANCH_PREFIX=feat/    # 分支前缀

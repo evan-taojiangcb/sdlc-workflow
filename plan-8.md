@@ -255,7 +255,7 @@ v8 的答案是：这些都必须写成规则，不交给模型自由发挥。
 | 6 | Claude 开发 | Executor | 代码变更 |
 | 7 | test-generator | Generator | unit/e2e/report |
 | 8 | code-reviewer | Evaluator-Optimizer | PASS / FAIL |
-| 9 | test-pipeline | Evaluator-Optimizer | 测试报告 |
+| 9 | test-pipeline | Evaluator-Optimizer | 测试报告 + Chrome/WebMCP 证据 |
 | 10 | docs-updater | Tool Wrapper | 更新后的文档 |
 | 11 | git-committer | Tool Wrapper | branch / commit / PR |
 | 12 | final notify | Notification | TG 消息 |
@@ -457,11 +457,12 @@ Contract:
 
 Contract:
 
-1. 默认串行执行 lint -> unit -> e2e -> Chrome DevTools MCP 验证
+1. 默认串行执行 lint -> unit -> Playwright -> Chrome DevTools MCP -> WebMCP
 2. 并行测试只能显式开启
 3. `set -u` 下不能依赖未初始化变量
 4. 输出必须落到 `tests/reports/`
 5. Chrome DevTools MCP 验证记录必须落到 `tests/reports/chrome/`
+6. WebMCP 验证记录必须落到 `tests/reports/webmcp/`
 
 ### 6.11 Step 10: Docs Updater
 
@@ -658,8 +659,9 @@ v8 相比 v7 的关键增强：
 6. 单元测试路径改为 workspace 镜像目录
 7. E2E 测试引入 Requirement ID / Scenario ID 去重映射
 8. Chrome DevTools MCP 被纳入正式验收证据
-9. 验证工作流被正式化
-10. handoff 被纳入证据分级体系
+9. WebMCP 被纳入正式验收证据
+10. 验证工作流被正式化
+11. handoff 被纳入证据分级体系
 
 ---
 

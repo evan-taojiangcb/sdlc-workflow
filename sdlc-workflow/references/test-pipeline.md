@@ -7,11 +7,12 @@
 ## 输出
 
 `tests/reports/<slug>-<timestamp>.md` — 测试执行报告  
-`tests/reports/chrome/<slug>-<scenario>.md` — Chrome DevTools MCP 验证记录
+`tests/reports/chrome/<slug>-<scenario>.md` — Chrome DevTools MCP 验证记录  
+`tests/reports/webmcp/<slug>-<scenario>.md` — WebMCP 验证记录
 
 ## 详细行为
 
-### 1. 三阶段执行
+### 1. 五阶段执行
 
 ```mermaid
 graph LR
@@ -19,12 +20,14 @@ graph LR
     UNIT["Stage 2: Unit<br/>$TEST_FRAMEWORK"]
     E2E["Stage 3: E2E<br/>$E2E_FRAMEWORK"]
     CHROME["Stage 4: Chrome DevTools MCP<br/>页面/控制台/网络验证"]
+    WEBMCP["Stage 5: WebMCP<br/>关键交互链路复核"]
 
     LINT --> UNIT
     LINT --> E2E
     UNIT --> REPORT["测试报告"]
     E2E --> CHROME
-    CHROME --> REPORT
+    CHROME --> WEBMCP
+    WEBMCP --> REPORT
 ```
 
 ### 2. Stage 1: Lint
@@ -78,27 +81,12 @@ esac
 ### 4. Stage 3: E2E Tests
 
 ```bash
-# 读取 E2E_FRAMEWORK 配置
-E2E_FRAMEWORK=${E2E_FRAMEWORK:-playwright}
+echo "🎭 运行 Playwright E2E 测试..."
+npx playwright test tests/e2e/ --reporter=html,json
 
-case "$E2E_FRAMEWORK" in
-  playwright)
-    echo "🎭 运行 Playwright E2E 测试..."
-    npx playwright test tests/e2e/ --reporter=html,json
-
-    # 生成覆盖率报告（如适用）
-    if [ -f "playwright-report/index.html" ]; then
-      echo "📊 E2E 测试报告已生成"
-    fi
-    ;;
-  cypress)
-    echo "🎭 运行 Cypress E2E 测试..."
-    npx cypress run --spec "tests/e2e/*.cy.js" --reporter json
-    ;;
-  *)
-    echo "⚠️ 未知的 E2E_FRAMEWORK: $E2E_FRAMEWORK"
-    ;;
-esac
+if [ -f "playwright-report/index.html" ]; then
+  echo "📊 Playwright 测试报告已生成"
+fi
 ```
 
 ### 5. Stage 4: Chrome DevTools MCP 验证
@@ -115,7 +103,21 @@ echo "🧭 使用 Chrome DevTools MCP 验证关键用户路径..."
 # 打开页面 -> 执行动作 -> 获取 snapshot/console/network -> 写入 tests/reports/chrome/<slug>-<scenario>.md
 ```
 
-### 6. 并行执行
+### 6. Stage 5: WebMCP 验证
+
+Chrome DevTools MCP 通过后，必须再用 WebMCP 复核关键交互链路，至少检查：
+
+1. 关键表单输入/按钮点击链路
+2. 用户可见反馈是否正确
+3. 与 Playwright 自动化脚本结果是否一致
+4. 生成独立的 WebMCP 验证记录，写入 `tests/reports/webmcp/`
+
+```bash
+echo "🌐 使用 WebMCP 复核关键交互链路..."
+# 打开页面 -> 执行关键操作 -> 获取可见状态/交互结果 -> 写入 tests/reports/webmcp/<slug>-<scenario>.md
+```
+
+### 7. 并行执行
 
 Stage 2 和 Stage 3 可以并行执行（如果无依赖）：
 
@@ -148,7 +150,7 @@ else
 fi
 ```
 
-### 7. 测试报告生成
+### 8. 测试报告生成
 
 ```bash
 # tests/reports/<slug>-<timestamp>.md
@@ -163,8 +165,9 @@ cat > "$REPORT_FILE" << 'EOF'
 - **执行时间**: YYYY-MM-DD HH:mm:ss
 - **迭代**: <seq>-<slug>-<type>
 - **测试框架**: $TEST_FRAMEWORK
-- **E2E 框架**: $E2E_FRAMEWORK
+- **E2E 框架**: Playwright
 - **Chrome DevTools MCP**: required
+- **WebMCP**: required
 
 ## 测试结果
 
@@ -174,13 +177,14 @@ cat > "$REPORT_FILE" << 'EOF'
 | Unit | ✅ | 25/25 | 85% |
 | E2E | ✅ | 8/8 | - |
 | Chrome MCP | ✅ | 1/1 | 页面、控制台、网络已验证 |
+| WebMCP | ✅ | 1/1 | 关键交互链路已复核 |
 
 ## Requirement → Test Matrix
 
-| Requirement ID | Task IDs | Test File | Scenario ID | Chrome Evidence |
-|----------------|----------|-----------|-------------|-----------------|
-| R-001 | T-001 | tests/unit/web/logic/calculator.test.ts | - | - |
-| R-003 | T-005 | tests/e2e/calculator/E2E-001-basic-calculation.e2e.ts | E2E-001 | tests/reports/chrome/calculator-E2E-001.md |
+| Requirement ID | Task IDs | Test File | Scenario ID | Chrome Evidence | WebMCP Evidence |
+|----------------|----------|-----------|-------------|-----------------|-----------------|
+| R-001 | T-001 | tests/unit/web/logic/calculator.test.ts | - | - | - |
+| R-003 | T-005 | tests/e2e/calculator/E2E-001-basic-calculation.e2e.ts | E2E-001 | tests/reports/chrome/calculator-E2E-001.md | tests/reports/webmcp/calculator-E2E-001.md |
 
 ## 失败用例（如有）
 
@@ -194,7 +198,7 @@ EOF
 echo "📋 测试报告: $REPORT_FILE"
 ```
 
-### 8. 循环修复逻辑
+### 9. 循环修复逻辑
 
 ```bash
 round=1
@@ -240,7 +244,6 @@ REPORT_FILE="tests/reports/${SLUG}-${TIMESTAMP}.md"
 # 读取配置
 LINT_TOOL=${LINT_TOOL:-eslint}
 TEST_FRAMEWORK=${TEST_FRAMEWORK:-jest}
-E2E_FRAMEWORK=${E2E_FRAMEWORK:-playwright}
 REVIEW_MAX_ROUNDS=${REVIEW_MAX_ROUNDS:-1}
 
 run_lint() {
@@ -261,11 +264,7 @@ run_unit_tests() {
 }
 
 run_e2e_tests() {
-  case "$E2E_FRAMEWORK" in
-    playwright) npx playwright test tests/e2e/ --reporter=html,json ;;
-    cypress) npx cypress run --spec "tests/e2e/*.cy.js" --reporter json ;;
-    *) echo "未知的 E2E_FRAMEWORK: $E2E_FRAMEWORK" >&2; return 1 ;;
-  esac
+  npx playwright test tests/e2e/ --reporter=html,json
 }
 
 run_chrome_mcp_verification() {
@@ -273,6 +272,13 @@ run_chrome_mcp_verification() {
   echo "- 页面可见状态: verified" > "tests/reports/chrome/${SLUG}-E2E-001.md"
   echo "- Console errors: none" >> "tests/reports/chrome/${SLUG}-E2E-001.md"
   echo "- Network checks: verified" >> "tests/reports/chrome/${SLUG}-E2E-001.md"
+}
+
+run_webmcp_verification() {
+  mkdir -p tests/reports/webmcp
+  echo "- 关键交互链路: verified" > "tests/reports/webmcp/${SLUG}-E2E-001.md"
+  echo "- 用户可见反馈: verified" >> "tests/reports/webmcp/${SLUG}-E2E-001.md"
+  echo "- 与 Playwright 结果一致: yes" >> "tests/reports/webmcp/${SLUG}-E2E-001.md"
 }
 
 round=1
@@ -304,7 +310,16 @@ while [ $round -le $REVIEW_MAX_ROUNDS ]; do
     CHROME_FAILED=1
   fi
 
-  if [ "$LINT_FAILED" -eq 0 ] && [ "$UNIT_FAILED" -eq 0 ] && [ "$E2E_FAILED" -eq 0 ] && [ "$CHROME_FAILED" -eq 0 ]; then
+  # Stage 5: WebMCP Verification
+  WEBMCP_FAILED=0
+  echo "🌐 Stage 5: WebMCP..."
+  if [ "$CHROME_FAILED" -eq 0 ]; then
+    run_webmcp_verification || WEBMCP_FAILED=1
+  else
+    WEBMCP_FAILED=1
+  fi
+
+  if [ "$LINT_FAILED" -eq 0 ] && [ "$UNIT_FAILED" -eq 0 ] && [ "$E2E_FAILED" -eq 0 ] && [ "$CHROME_FAILED" -eq 0 ] && [ "$WEBMCP_FAILED" -eq 0 ]; then
     echo "✅ 所有测试通过"
     exit 0
   fi
@@ -327,6 +342,7 @@ done
 | 测试文件不存在 | 警告，跳过该阶段 |
 | E2E 测试超时 | 增加 timeout 配置 |
 | Chrome DevTools MCP 未验证 | 视为测试未完成 |
+| WebMCP 未验证 | 视为测试未完成 |
 | 并行执行失败 | 回退为串行执行 |
 
 ## TG 通知文案

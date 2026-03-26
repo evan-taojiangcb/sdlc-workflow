@@ -39,7 +39,7 @@ graph TD
     S7 --> S8["⑧ code-reviewer · Gate 2<br/>Codex CLI 审查代码"]
     S8 --> TG4["📱 TG: Code Review 结果"]
     TG4 -->|FAIL & round ≤ N| S6
-    TG4 -->|PASS| S9["⑨ test-pipeline<br/>lint → unit → e2e"]
+    TG4 -->|PASS| S9["⑨ test-pipeline<br/>lint → unit → Playwright → Chrome MCP → WebMCP"]
     TG4 -->|"FAIL & round > N"| ESCALATE
 
     S9 --> TG5["📱 TG: 测试报告"]
@@ -64,7 +64,7 @@ graph TD
 | ⑥ | Claude Code 开发 | — | tasks.md | 代码变更 | Claude Code |
 | ⑦ | test-generator | Generator | tasks.md + git diff | tests/unit/ + tests/e2e/ | Claude Code |
 | ⑧ | code-reviewer | Evaluator-Optimizer | git diff + CODING_GUIDELINES.md + SECURITY.md | PASS/FAIL | Codex CLI |
-| ⑨ | test-pipeline | Pipeline | tests/ | tests/reports/ | Lint + Test Framework |
+| ⑨ | test-pipeline | Pipeline | tests/ | tests/reports/ | Lint + Playwright + Chrome DevTools MCP + WebMCP |
 | ⑩ | docs-updater | Tool Wrapper | 代码变更 + 迭代产物 | 更新后的文档 | Claude Code |
 | ⑪ | git-committer | Tool Wrapper | 所有变更 | PR URL | Git + GitHub CLI |
 | ⑫ | 最终通知 | — | PR URL + 变更摘要 | TG 消息 | OpenClaw CLI |
@@ -153,7 +153,7 @@ git diff (代码变更)   ──────→  🔍 Gate 2: code-reviewer
 - 取消 `specs/` 目录，v6 中 specs/ 和 tests/ 职责重叠
 - v7 统一为 `tests/`
 - v8 进一步要求单元测试镜像 workspace 目录，不得写回源码目录
-- 测试报告统一写入 `tests/reports/`，其中浏览器验证证据写入 `tests/reports/chrome/`
+- 测试报告统一写入 `tests/reports/`，其中浏览器验证证据写入 `tests/reports/chrome/` 与 `tests/reports/webmcp/`
 
 ### 6.2 迭代目录命名
 - v6 扁平 `YYYY-MM-DD/` 结构导致同日多需求冲突
@@ -184,7 +184,7 @@ git diff (代码变更)   ──────→  🔍 Gate 2: code-reviewer
 |------|--------|------|
 | TG_USERNAME | (必需) | Telegram 用户名 |
 | TEST_FRAMEWORK | jest | 单元测试框架 |
-| E2E_FRAMEWORK | playwright | E2E 测试框架 |
+| E2E_FRAMEWORK | playwright | 固定 E2E 测试框架 |
 | LINT_TOOL | eslint | Lint 工具 |
 | REVIEW_MAX_ROUNDS | 1 | 审查最大轮数 |
 | GIT_BRANCH_PREFIX | feat/ | Git 分支前缀 |

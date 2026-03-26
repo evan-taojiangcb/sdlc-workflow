@@ -23,7 +23,7 @@
 4. 单元测试路径必须镜像 workspace 源码路径
 5. E2E 场景文件必须使用唯一 Scenario ID，避免重复
 5. 使用 $TEST_FRAMEWORK 语法（jest/vitest）
-6. 使用 $E2E_FRAMEWORK 语法（playwright/cypress）
+6. E2E 执行固定使用 Playwright
 7. 测试样例必须引用真实 workspace 路径，不沿用过时的 `src/*` 假设
 8. 每个 E2E 场景必须绑定 Requirement IDs 和 Task IDs
 9. 若已有 E2E 场景覆盖同一需求路径，应扩展原场景或记录替代关系，不得重复生成
@@ -56,7 +56,7 @@ describe('calculate', () => {
 // Scenario-ID: E2E-001
 // Requirement-IDs: R-001,R-003
 // Task-IDs: T-002,T-005
-// 使用 $E2E_FRAMEWORK 语法
+// 使用 Playwright 语法
 
 import { test, expect } from '@playwright/test';
 
@@ -123,7 +123,7 @@ test.describe('User Authentication Flow', () => {
 - **生成时间**: YYYY-MM-DD HH:mm:ss
 - **迭代**: docs/iterations/<date>/<seq>-<slug>-<type>/
 - **测试框架**: $TEST_FRAMEWORK
-- **E2E 框架**: $E2E_FRAMEWORK
+- **E2E 框架**: Playwright
 
 ## 单元测试覆盖
 
@@ -175,8 +175,6 @@ TASKS_FILE="$ITER_DIR/tasks.md"
 
 # 读取测试框架配置
 TEST_FRAMEWORK=${TEST_FRAMEWORK:-jest}
-E2E_FRAMEWORK=${E2E_FRAMEWORK:-playwright}
-
 # 1. 读取 tasks.md，提取验收标准
 ACCEPTANCE_CRITERIA=$(cat "$TASKS_FILE" | grep -A 10 "验收标准")
 
@@ -190,7 +188,7 @@ EOF
 
 # 3. 生成 E2E 测试（唯一 Scenario ID）
 cat > "tests/e2e/${SLUG}/E2E-001-${SLUG}.e2e.ts" << 'EOF'
-// E2E 测试 - 使用 $E2E_FRAMEWORK
+// E2E 测试 - 使用 Playwright
 import { test, expect } from '@playwright/test';
 ...
 EOF

@@ -68,7 +68,7 @@ Pipeline 启动时按以下优先级确定 TG_USERNAME：
 |------|--------|------|
 | TG_USERNAME | (空) | 必需，Telegram 用户名 |
 | TEST_FRAMEWORK | jest | 单元测试框架 |
-| E2E_FRAMEWORK | playwright | E2E 测试框架 |
+| E2E_FRAMEWORK | playwright | 固定 E2E 测试框架 |
 | LINT_TOOL | eslint | Lint 工具 |
 | REVIEW_MAX_ROUNDS | 1 | 审查最大轮数 |
 | GIT_BRANCH_PREFIX | feat/ | Git 分支前缀 |
@@ -109,7 +109,7 @@ Pipeline 启动时按以下优先级确定 TG_USERNAME：
 | ⑥ | Claude Code 开发 | 按 tasks.md 逐任务实现代码 |
 | ⑦ | test-generator | 生成 tests/unit/ + tests/e2e/ |
 | ⑧ | code-reviewer | **Gate 2**: Codex CLI 审查代码 |
-| ⑨ | test-pipeline | lint → unit → e2e |
+| ⑨ | test-pipeline | lint → unit → Playwright → Chrome DevTools MCP → WebMCP |
 | ⑩ | docs-updater | 更新文档 + CLAUDE.md iterations 引用 |
 | ⑪ | git-committer | branch → commit → push → PR |
 
@@ -218,7 +218,9 @@ WHILE round <= REVIEW_MAX_ROUNDS:
 ```
 STAGE 1: npx $LINT_TOOL .        # 快速失败
 STAGE 2: npx $TEST_FRAMEWORK     # unit tests
-STAGE 3: npx $E2E_FRAMEWORK test # e2e tests (并行)
+STAGE 3: npx playwright test # Playwright tests
+STAGE 4: Chrome DevTools MCP validation
+STAGE 5: WebMCP validation
 
 IF any failure:
   IF round < REVIEW_MAX_ROUNDS:
@@ -290,7 +292,7 @@ openclaw message send --channel telegram --target "$TG_USERNAME" --message "$MSG
 9. **渐进式加载**：SKILL.md ≤500 行，详细规范按需从 references/ 加载
 10. **模板不覆盖**：init-project.sh 不覆盖已存在的文件
 11. **统一测试目录**：单元测试只能写入 `tests/unit/web|server|packages`，E2E 只能写入 `tests/e2e/`，报告写入 `tests/reports/`
-13. **E2E 证据要求**：关键用户路径的最终报告必须包含 Chrome DevTools MCP 的页面/控制台/网络验证结果
+13. **E2E 证据要求**：关键用户路径的最终报告必须包含 Playwright、Chrome DevTools MCP 和 WebMCP 三层验证结果
 14. **需求到测试唯一映射**：requirements、tasks、E2E 场景必须有唯一 ID 映射，禁止重复覆盖同一需求路径
 12. **迭代可追溯**：docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/
 13. **审查门禁不可降级**：Codex CLI 不可用时必须中止，不能自动跳过 Gate

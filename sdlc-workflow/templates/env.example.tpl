@@ -27,12 +27,12 @@ TG_USERNAME=
 # - mocha:  npx mocha (需安装 mocha, 传统 Node.js 项目)
 TEST_FRAMEWORK=jest
 
-# [可选] E2E 测试框架
-# 枚举值: playwright | cypress
-# 默认值: playwright
-# 说明: 用于执行 tests/e2e/ 下的测试文件，配合 Chrome DevTools MCP
-# - playwright: npx playwright test (推荐，与 Chrome MCP 配合最佳)
-# - cypress:    npx cypress run (适合已有 Cypress 基础设施的项目)
+# [固定] E2E 测试框架
+# 固定值: playwright
+# 说明: 测试链路固定为 Playwright + Chrome DevTools MCP + WebMCP
+# - playwright: 执行 tests/e2e/ 下的测试文件
+# - Chrome DevTools MCP: 页面/控制台/网络验证
+# - WebMCP: 关键交互链路复核
 E2E_FRAMEWORK=playwright
 
 # [可选] 是否并行执行 Unit 与 E2E
