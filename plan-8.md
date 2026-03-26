@@ -13,9 +13,26 @@
 
 ---
 
-## 1. Design Goals
+## 1. Design Philosophy and Goals
 
-### 1.1 Primary Goals
+### 1.1 Design Philosophy
+
+v8 的设计立场和 v7 不同，不是继续堆更多 prompt，而是把几个容易漂移的点显式收口：
+
+1. 用结构约束替代“模型应该自己懂项目布局”
+2. 用双模型 gate 替代“生成后默认可信”
+3. 用证据分级替代“handoff 写了就算成立”
+4. 用恢复模型替代“靠当前 CLI 会话记忆上下文”
+
+这意味着 v8 的重点不是让单次运行看起来更顺，而是让以下场景也可控：
+
+- 中文需求输入
+- 多轮 review / test 失败
+- 手交接文档和真实仓库冲突
+- 全栈 monorepo 出现错误目录落位
+- 执行中断后换模型、换会话继续
+
+### 1.2 Primary Goals
 
 1. 把需求处理为可追溯的迭代产物
 2. 让 Claude 负责生成，Codex 负责把关
@@ -23,7 +40,7 @@
 4. 让测试报告、handoff、设计文档都能被证据化验证
 5. 让失败可以中止、恢复、继续，而不是静默漂移
 
-### 1.2 Non-Goals
+### 1.3 Non-Goals
 
 1. 不追求一次提示覆盖所有技术栈变体
 2. 不允许模型擅自发明新的顶层目录结构
@@ -196,6 +213,24 @@ v8 的答案是：这些都必须写成规则，不交给模型自由发挥。
 | 10 | docs-updater | Tool Wrapper | 更新后的文档 |
 | 11 | git-committer | Tool Wrapper | branch / commit / PR |
 | 12 | final notify | Notification | TG 消息 |
+
+### 5.1.1 Step Summary
+
+| Step | Focus | Main Checkpoint | Failure Action |
+|------|-------|-----------------|----------------|
+| 0 | 初始化项目与配置 | `.claude/`、`docs/`、`.env` 是否齐全 | 立即中止 |
+| 1 | 需求收录 | iteration 目录和 slug 是否正确 | 修正输入解析 |
+| 2 | 需求澄清 | 假设和明确约束是否分离 | 回到澄清 |
+| 3 | 方案设计 | 是否声明目录影响和边界 | 回到设计 |
+| 4 | 任务分解 | 是否给出目标文件和 workspace | 回到任务拆解 |
+| 5 | 设计审查 | 设计、安全、结构是否通过 | Gate 1 循环 |
+| 6 | 开发实现 | 是否按设计落位实现 | 回写设计或修正代码 |
+| 7 | 测试生成 | 用例、报告、路径是否真实 | 回到测试生成 |
+| 8 | 代码审查 | 质量、安全、落位是否通过 | Gate 2 循环 |
+| 9 | 测试执行 | lint/unit/e2e 是否可跑 | Test 循环 |
+| 10 | 文档更新 | 架构/规范/历史是否同步 | 回到文档修正 |
+| 11 | Git 交付 | 分支、commit、PR 是否规范 | 中止交付 |
+| 12 | 最终通知 | 是否只发送已验证状态 | 改正通知内容 |
 
 ### 5.2 End-to-End Flow
 
@@ -570,7 +605,96 @@ v8 相比 v7 的关键增强：
 
 ---
 
-## 14. Recommended Next Step
+## 14. Repository File Inventory
+
+### 14.1 Skill Repository
+
+v8 设计直接覆盖以下技能文件：
+
+```text
+sdlc-workflow/
+├── SKILL.md
+├── README.md
+├── references/
+│   ├── pipeline-overview.md
+│   ├── requirements-ingestion.md
+│   ├── requirements-clarifier.md
+│   ├── design-generator.md
+│   ├── task-generator.md
+│   ├── design-reviewer.md
+│   ├── test-generator.md
+│   ├── code-reviewer.md
+│   ├── test-pipeline.md
+│   ├── docs-updater.md
+│   ├── git-committer.md
+│   └── tg-notifier.md
+├── templates/
+│   ├── CLAUDE.md.tpl
+│   ├── workflow-rules.md.tpl
+│   ├── ARCHITECTURE.md.tpl
+│   ├── SECURITY.md.tpl
+│   ├── CODING_GUIDELINES.md.tpl
+│   └── env.example.tpl
+└── scripts/
+    └── init-project.sh
+```
+
+### 14.2 Project Runtime Artifacts
+
+```text
+project-root/
+├── .claude/
+│   ├── CLAUDE.md
+│   └── rules/workflow-rules.md
+├── docs/
+│   ├── ARCHITECTURE.md
+│   ├── SECURITY.md
+│   ├── CODING_GUIDELINES.md
+│   └── iterations/YYYY-MM-DD/<slug>-<type>/
+│       ├── requirements.md
+│       ├── design.md
+│       └── tasks.md
+├── tests/
+│   ├── unit/
+│   ├── e2e/
+│   └── reports/
+├── apps/
+│   ├── web/
+│   └── server/
+└── packages/
+```
+
+---
+
+## 15. Rollout Plan
+
+### 15.1 Phase 1: Guardrails
+
+1. 收紧模板和 workflow 规则
+2. 让设计、任务、review 都具备 workspace 落位约束
+3. 让 gate 不可降级
+
+### 15.2 Phase 2: Validation
+
+1. 用样板项目跑一轮正式验证
+2. 记录 lint / unit / e2e / reports 的真实状态
+3. 把不一致处写入 `VALIDATION-YYYY-MM-DD.md`
+
+### 15.3 Phase 3: Handoff Hardening
+
+1. 重写 handoff 结构为 Verified / Claimed
+2. 清理不实结论
+3. 固化恢复输入格式
+
+### 15.4 Phase 4: Rehearsal
+
+1. 再跑一次真实 feature 流程
+2. 观察是否仍会出现根目录 `web/` 等结构偏差
+3. 如果出现，再补结构性规则，而不是追加解释性 prompt
+
+---
+
+## 16. Recommended Next Step
 
 基于本设计，下一步应让执行模型完成一次正式验证回路：
 
