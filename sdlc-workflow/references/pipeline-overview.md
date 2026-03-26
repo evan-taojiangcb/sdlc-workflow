@@ -12,7 +12,7 @@ graph TD
     TG_DETECT["TG_USERNAME 自动检测<br/>OPENCLAW_TRIGGER_USER → .env"]
     TG_DETECT --> ENV_CHECK{".env 配置完整?"}
     ENV_CHECK -->|缺 TG_USERNAME| STOP["⏸ 提示用户配置 .env"]
-    ENV_CHECK -->|完整| SLUG["生成迭代目录<br/>docs/iterations/YYYY-MM-DD/slug-type/"]
+    ENV_CHECK -->|完整| SLUG["生成迭代目录<br/>docs/iterations/YYYY-MM-DD/001-slug-type/"]
 
     SLUG --> ROUTE{输入类型路由}
     ROUTE -->|文本| C1[直接解析]
@@ -120,7 +120,7 @@ git diff (代码变更)   ──────→  🔍 Gate 2: code-reviewer
 │  │   ├── CODING_GUIDELINES.md                           │
 │  │   └── iterations/                                    │
 │  │       └── YYYY-MM-DD/                                │
-│  │           └── <slug>-<type>/                         │
+│  │           └── <seq>-<slug>-<type>/                   │
 │  │               ├── requirements.md                     │
 │  │               ├── design.md                           │
 │  │               └── tasks.md                            │
@@ -149,6 +149,7 @@ git diff (代码变更)   ──────→  🔍 Gate 2: code-reviewer
 ### 6.2 迭代目录命名
 - v6 扁平 `YYYY-MM-DD/` 结构导致同日多需求冲突
 - v7 改为 `YYYY-MM-DD/<slug>-<type>/` 支持同日多需求并行
+- v8 再补 `<seq>`，形成 `YYYY-MM-DD/<seq>-<slug>-<type>/`，显式记录同日执行顺序
 
 ### 6.3 CLAUDE.md 引入 iterations
 - 使 Claude 在后续交互中可自动读取历史迭代上下文

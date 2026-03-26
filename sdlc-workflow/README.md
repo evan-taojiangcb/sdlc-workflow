@@ -68,7 +68,7 @@ git clone https://github.com/<org>/sdlc-workflow ~/.agents/skills/sdlc-workflow
    - 若 TG 触发且存在 `OPENCLAW_TRIGGER_USER` → 自动创建 `.env`（若缺失）并写入
    - 若手动触发 → 提示用户 `cp .env.example .env` → 编辑 `.env` 设置 `TG_USERNAME`
 3. 配置完成后 → 进入完整 Pipeline
-4. 产物写入 `docs/iterations/2026-03-25/user-login-feature/`
+4. 产物写入 `docs/iterations/2026-03-25/001-user-login-feature/`
 
 ### 后续使用
 
@@ -159,7 +159,7 @@ GIT_BRANCH_PREFIX=feat/    # 分支前缀
 每次迭代产物：
 
 ```
-docs/iterations/YYYY-MM-DD/<slug>-<type>/
+docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/
 ├── requirements.md    # 结构化需求
 ├── design.md          # 技术设计
 └── tasks.md           # 任务分解
@@ -169,6 +169,8 @@ tests/
 ├── e2e/               # E2E 测试
 └── reports/           # 测试报告
 ```
+
+其中 `<seq>` 为当日顺序号，从 `001` 开始递增，保证同一天多个需求按执行顺序可追踪。
 
 ---
 

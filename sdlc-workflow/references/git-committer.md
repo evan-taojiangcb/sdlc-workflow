@@ -110,9 +110,9 @@ PR_BODY=$(cat << 'EOF'
 
 ## 迭代信息
 
-- 迭代目录: `docs/iterations/<date>/<slug>-<type>/`
-- 设计文档: `docs/iterations/<date>/<slug>-<type>/design.md`
-- 任务分解: `docs/iterations/<date>/<slug>-<type>/tasks.md`
+- 迭代目录: `docs/iterations/<date>/<seq>-<slug>-<type>/`
+- 设计文档: `docs/iterations/<date>/<seq>-<slug>-<type>/design.md`
+- 任务分解: `docs/iterations/<date>/<seq>-<slug>-<type>/tasks.md`
 
 ---
 
@@ -141,7 +141,7 @@ set -euo pipefail
 # 配置
 GIT_BRANCH_PREFIX=${GIT_BRANCH_PREFIX:-feat/}
 COMMIT_SCOPE=${COMMIT_SCOPE:-}
-ITER_DIR="docs/iterations/$DATE/${SLUG}-${TYPE}/"
+ITER_DIR="docs/iterations/$DATE/${SEQ}-${SLUG}-${TYPE}/"
 DATE=$(date +%Y-%m-%d)
 
 # 1. 创建分支

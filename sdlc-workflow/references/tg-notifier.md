@@ -25,7 +25,7 @@ openclaw message send --channel telegram --target "$TG_USERNAME" --message "$MSG
 
 ```
 📥 需求已收录: <需求摘要前50字>
-📂 迭代目录: docs/iterations/<date>/<slug>-<type>/
+📂 迭代目录: docs/iterations/<date>/<seq>-<slug>-<type>/
 ```
 
 ### 2. 需求澄清（低置信度时）
@@ -129,7 +129,7 @@ openclaw message send --channel telegram --target "$TG_USERNAME" --message "$MSG
 📝 提交: <commit-message>
 📊 变更: <N> files
 🧪 测试: <结果>
-📂 迭代目录: docs/iterations/<date>/<slug>-<type>/
+📂 迭代目录: docs/iterations/<date>/<seq>-<slug>-<type>/
 ```
 
 ## 实现示例

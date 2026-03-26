@@ -78,18 +78,19 @@ Pipeline 启动时按以下优先级确定 TG_USERNAME：
 
 每次 Pipeline 运行创建一个迭代目录：
 
-  docs/iterations/YYYY-MM-DD/<slug>-<type>/
+  docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/
 
 命名规则：
 - YYYY-MM-DD: 当天日期
+- <seq>: 当天内递增的 3 位序号，从 `001` 开始
 - <slug>: 需求名称的 kebab-case 形式（从需求内容提取关键词，≤30 字符）
 - <type>: 变更类型，从以下枚举中选择：
   feature | fix | refactor | docs | test | chore
 
 示例：
-  docs/iterations/2026-03-25/user-login-feature/
-  docs/iterations/2026-03-25/password-reset-fix/
-  docs/iterations/2026-03-26/cache-layer-refactor/
+  docs/iterations/2026-03-25/001-user-login-feature/
+  docs/iterations/2026-03-25/002-password-reset-fix/
+  docs/iterations/2026-03-26/001-cache-layer-refactor/
 
 该目录下包含：requirements.md, design.md, tasks.md
 
@@ -133,13 +134,22 @@ READ .env
 SLUG=$(generate_slug_from_requirements "$INPUT")  # 优先语义化英文 slug，失败则 req-<hash8>
 TYPE=$(infer_type "$INPUT")  # feature|fix|refactor|docs|test|chore
 DATE=$(date +%Y-%m-%d)
-ITER_DIR="docs/iterations/$DATE/$SLUG-$TYPE/"
+DATE_DIR="docs/iterations/$DATE"
+MKDIR -p "$DATE_DIR"
+LAST_SEQ=$(find "$DATE_DIR" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | \
+  sed -n 's/^\([0-9][0-9][0-9]\)-.*/\1/p' | sort | tail -n1)
+IF [ -n "$LAST_SEQ" ]; THEN
+  SEQ=$(printf "%03d" $((10#$LAST_SEQ + 1)))
+ELSE
+  SEQ="001"
+FI
+ITER_DIR="$DATE_DIR/$SEQ-$SLUG-$TYPE/"
 MKDIR -p "$ITER_DIR"
 ```
 
 #### ① requirements-ingestion
 - 输入类型路由：文本 → 直接解析；file:// → 读取文件；URL → Chrome DevTools MCP
-- 输出：docs/iterations/YYYY-MM-DD/<slug>-<type>/requirements.md
+- 输出：docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/requirements.md
 - 通知 TG：📥 需求已收录
 
 #### ② requirements-clarifier
@@ -152,11 +162,11 @@ MKDIR -p "$ITER_DIR"
 #### ③ design-generator
 - 读取：requirements.md + docs/ARCHITECTURE.md + docs/SECURITY.md + docs/iterations/（历史）
 - 设计必须声明代码落位：默认遵循 Better-T-Stack 风格 `apps/web` / `apps/server` / `packages/*`
-- 输出：docs/iterations/YYYY-MM-DD/<slug>-<type>/design.md
+- 输出：docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/design.md
 
 #### ④ task-generator
 - 输入：design.md
-- 输出：docs/iterations/YYYY-MM-DD/<slug>-<type>/tasks.md
+- 输出：docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/tasks.md
 
 #### ⑤ design-reviewer (Gate 1)
 ```
@@ -280,6 +290,6 @@ openclaw message send --channel telegram --target "$TG_USERNAME" --message "$MSG
 9. **渐进式加载**：SKILL.md ≤500 行，详细规范按需从 references/ 加载
 10. **模板不覆盖**：init-project.sh 不覆盖已存在的文件
 11. **统一测试目录**：tests/unit/ + tests/e2e/ + tests/reports/
-12. **迭代可追溯**：docs/iterations/YYYY-MM-DD/<slug>-<type>/
+12. **迭代可追溯**：docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/
 13. **审查门禁不可降级**：Codex CLI 不可用时必须中止，不能自动跳过 Gate
 14. **全栈目录约束**：默认采用 Better-T-Stack 风格 monorepo，业务代码不应随意落到根目录级 `web/`/`api/`/`server/`

@@ -2,11 +2,11 @@
 
 ## 输入
 
-`docs/iterations/YYYY-MM-DD/<slug>-<type>/design.md`
+`docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/design.md`
 
 ## 输出
 
-`docs/iterations/YYYY-MM-DD/<slug>-<type>/tasks.md`
+`docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/tasks.md`
 
 ## 详细行为
 
@@ -106,7 +106,7 @@ T-002 ──┘           │
 
 ## 基本信息
 
-- **迭代目录**: docs/iterations/<date>/<slug>-<type>/
+- **迭代目录**: docs/iterations/<date>/<seq>-<slug>-<type>/
 - **生成时间**: YYYY-MM-DD HH:mm:ss
 - **基于设计**: design.md
 
@@ -220,7 +220,7 @@ T-002 ──┘           │
 
 ```bash
 # 1. 读取 design.md
-DESIGN_FILE="docs/iterations/$DATE/$SLUG-$TYPE/design.md"
+DESIGN_FILE="docs/iterations/$DATE/$SEQ-$SLUG-$TYPE/design.md"
 
 # 2. 分析设计文档，提取任务
 # - API 接口 → 实现任务
@@ -258,13 +258,13 @@ echo "生成了 $TOTAL_TASKS 个任务"
 ```
 📋 任务分解完成: <任务总数> 个任务
 ⏱ 预估工时: <总工时>
-📂 详见: docs/iterations/<date>/<slug>-<type>/tasks.md
+📂 详见: docs/iterations/<date>/<seq>-<slug>-<type>/tasks.md
 ```
 
 ## 相关文件
 
-- 输入：docs/iterations/YYYY-MM-DD/<slug>-<type>/design.md
-- 输出：docs/iterations/YYYY-MM-DD/<slug>-<type>/tasks.md
+- 输入：docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/design.md
+- 输出：docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/tasks.md
 - 参考：
   - references/design-reviewer.md（下一步，Gate 1）
   - SKILL.md Part 4（任务执行阶段）

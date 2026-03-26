@@ -141,7 +141,7 @@ fi
 ```bash
 # 更新 CLAUDE.md 的 iterations 引用章节
 ITER_DATE=$(date +%Y-%m-%d)
-ITER_DIR="docs/iterations/$ITER_DATE/${SLUG}-${TYPE}/"
+ITER_DIR="docs/iterations/$ITER_DATE/${SEQ}-${SLUG}-${TYPE}/"
 
 # 检查是否已有 iterations 章节
 if ! grep -q "## 迭代历史" .claude/CLAUDE.md; then
@@ -165,7 +165,7 @@ sed -i '' "s|## 迭代历史|## 迭代历史\n\n- [$ITER_DATE] $SLUG ($TYPE): $(
 #!/bin/bash
 set -euo pipefail
 
-ITER_DIR="docs/iterations/$DATE/${SLUG}-${TYPE}/"
+ITER_DIR="docs/iterations/$DATE/${SEQ}-${SLUG}-${TYPE}/"
 
 # 1. 分析代码变更
 echo "📊 分析代码变更..."
@@ -211,7 +211,7 @@ echo "✅ 文档更新完成"
 #!/bin/bash
 set -euo pipefail
 
-ITER_DIR="docs/iterations/$DATE/${SLUG}-${TYPE}/"
+ITER_DIR="docs/iterations/$DATE/${SEQ}-${SLUG}-${TYPE}/"
 ITER_DATE=$(date +%Y-%m-%d)
 
 # 1. README.md 更新
@@ -282,9 +282,9 @@ echo "✅ 文档更新完成"
 
 - 输入：
   - 代码变更（git diff）
-  - docs/iterations/YYYY-MM-DD/<slug>-<type>/requirements.md
-  - docs/iterations/YYYY-MM-DD/<slug>-<type>/design.md
-  - docs/iterations/YYYY-MM-DD/<slug>-<type>/tasks.md
+  - docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/requirements.md
+  - docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/design.md
+  - docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/tasks.md
 - 输出：更新后的文档
 - 参考：
   - references/git-committer.md（下一步）

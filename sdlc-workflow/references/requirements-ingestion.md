@@ -12,7 +12,7 @@
 
 ## 输出
 
-`docs/iterations/YYYY-MM-DD/<slug>-<type>/requirements.md`
+`docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/requirements.md`
 
 ## 详细行为
 
@@ -90,15 +90,33 @@ elif echo "$CONTENT" | grep -qiE "(chore|setup|config|配置|部署)"; then
 fi
 ```
 
-### 4. 目录创建
+### 4. 顺序号生成
+
+同一天内的 iteration 目录必须带递增序号，保证执行顺序可追踪且按字典序可排序：
 
 ```bash
 DATE=$(date +%Y-%m-%d)
-ITER_DIR="docs/iterations/$DATE/${SLUG}-${TYPE}/"
+DATE_DIR="docs/iterations/$DATE"
+mkdir -p "$DATE_DIR"
+
+LAST_SEQ=$(find "$DATE_DIR" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | \
+  sed -n 's/^\([0-9][0-9][0-9]\)-.*/\1/p' | sort | tail -n1)
+
+if [ -n "$LAST_SEQ" ]; then
+  SEQ=$(printf "%03d" $((10#$LAST_SEQ + 1)))
+else
+  SEQ="001"
+fi
+```
+
+### 5. 目录创建
+
+```bash
+ITER_DIR="docs/iterations/$DATE/${SEQ}-${SLUG}-${TYPE}/"
 mkdir -p "$ITER_DIR"
 ```
 
-### 5. 需求文档写入
+### 6. 需求文档写入
 
 创建 `requirements.md`，包含：
 
@@ -108,6 +126,7 @@ mkdir -p "$ITER_DIR"
 ## 基本信息
 
 - **采集时间**: YYYY-MM-DD HH:mm:ss
+- **迭代序号**: <seq>
 - **输入类型**: text | file | url
 - **变更类型**: feature | fix | refactor | docs | test | chore
 - **Slug**: <slug>
@@ -135,7 +154,7 @@ mkdir -p "$ITER_DIR"
 <!-- 在澄清环节填充 -->
 ```
 
-### 6. 外部文档拉取
+### 7. 外部文档拉取
 
 检测需求中是否指定了外部文档来源：
 
@@ -147,7 +166,7 @@ if echo "$CONTENT" | grep -qE "(https?://|file://)"; then
 fi
 ```
 
-### 7. TG 通知
+### 8. TG 通知
 
 ```bash
 openclaw message send \
@@ -179,7 +198,17 @@ SLUG=$(generate_slug "$CONTENT")
 TYPE=$(infer_type "$CONTENT")
 
 # 3. 创建目录
-ITER_DIR="docs/iterations/$(date +%Y-%m-%d)/${SLUG}-${TYPE}/"
+DATE=$(date +%Y-%m-%d)
+DATE_DIR="docs/iterations/$DATE"
+mkdir -p "$DATE_DIR"
+LAST_SEQ=$(find "$DATE_DIR" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | \
+  sed -n 's/^\([0-9][0-9][0-9]\)-.*/\1/p' | sort | tail -n1)
+if [ -n "$LAST_SEQ" ]; then
+  SEQ=$(printf "%03d" $((10#$LAST_SEQ + 1)))
+else
+  SEQ="001"
+fi
+ITER_DIR="$DATE_DIR/${SEQ}-${SLUG}-${TYPE}/"
 mkdir -p "$ITER_DIR"
 
 # 4. 写入 requirements.md
@@ -206,11 +235,11 @@ notify_tg "📥 需求已收录: $(echo "$CONTENT" | head -c 50)..."
 **需求收录通知**：
 ```
 📥 需求已收录: <需求摘要前50字>
-📂 迭代目录: docs/iterations/<date>/<slug>-<type>/
+📂 迭代目录: docs/iterations/<date>/<seq>-<slug>-<type>/
 ```
 
 ## 相关文件
 
 - 输入：用户提供的需求（文本/文件/URL）
-- 输出：docs/iterations/YYYY-MM-DD/<slug>-<type>/requirements.md
+- 输出：docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/requirements.md
 - 参考：references/requirements-clarifier.md（下一步）

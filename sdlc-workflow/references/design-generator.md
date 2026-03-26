@@ -2,14 +2,14 @@
 
 ## 输入
 
-1. `docs/iterations/YYYY-MM-DD/<slug>-<type>/requirements.md`
+1. `docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/requirements.md`
 2. `docs/ARCHITECTURE.md`
 3. `docs/SECURITY.md`
 4. `docs/iterations/`（历史迭代，用于上下文）
 
 ## 输出
 
-`docs/iterations/YYYY-MM-DD/<slug>-<type>/design.md`
+`docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/design.md`
 
 ## 详细行为
 
@@ -38,7 +38,7 @@ LATEST_DESIGNS=$(find "$HISTORY_DIR" -name "design.md" -type f \
 
 ## 基本信息
 
-- **迭代目录**: docs/iterations/<date>/<slug>-<type>/
+- **迭代目录**: docs/iterations/<date>/<seq>-<slug>-<type>/
 - **生成时间**: YYYY-MM-DD HH:mm:ss
 - **基于需求**: requirements.md
 
@@ -218,7 +218,7 @@ Claude Code 在生成设计时应参考：
 
 ```bash
 # 1. 读取输入
-REQ_FILE="docs/iterations/$DATE/$SLUG-$TYPE/requirements.md"
+REQ_FILE="docs/iterations/$DATE/$SEQ-$SLUG-$TYPE/requirements.md"
 ARCH_FILE="docs/ARCHITECTURE.md"
 SEC_FILE="docs/SECURITY.md"
 
@@ -258,7 +258,7 @@ fi
 设计生成完成后（供 design-reviewer 阶段参考）：
 
 ```
-🎨 设计文档已生成: docs/iterations/<date>/<slug>-<type>/design.md
+🎨 设计文档已生成: docs/iterations/<date>/<seq>-<slug>-<type>/design.md
 📋 包含: 技术方案、API 设计、数据模型、安全考量
 ```
 
@@ -269,7 +269,7 @@ fi
   - docs/ARCHITECTURE.md
   - docs/SECURITY.md
   - docs/iterations/*/design.md（历史）
-- 输出：docs/iterations/YYYY-MM-DD/<slug>-<type>/design.md
+- 输出：docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/design.md
 - 参考：
   - references/task-generator.md（下一步）
   - references/design-reviewer.md（Gate 1）

@@ -22,12 +22,12 @@
 
 ## 迭代历史
 
-历史迭代记录存放在 `docs/iterations/` 目录下，按日期和需求名称组织：
+历史迭代记录存放在 `docs/iterations/` 目录下，按日期和需求顺序组织：
 
 ```
 docs/iterations/
 └── YYYY-MM-DD/
-    └── <需求名>-<变更类型>/
+    └── <序号>-<需求名>-<变更类型>/
         ├── requirements.md    # 结构化需求
         ├── design.md          # 技术设计
         └── tasks.md           # 任务分解

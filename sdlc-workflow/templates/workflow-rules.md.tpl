@@ -2,7 +2,8 @@
 
 - 文件操作限项目根目录内
 - 日期格式: YYYY-MM-DD
-- 迭代目录格式: docs/iterations/YYYY-MM-DD/<slug>-<type>/
+- 迭代目录格式: docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/
+  - <seq>: 当天内递增的 3 位序号，例 `001`
   - <slug>: 需求名 kebab-case (≤30 字符)
   - <type>: feature | fix | refactor | docs | test | chore
 - Commit: Conventional Commits (feat/fix/docs/refactor/test/chore)

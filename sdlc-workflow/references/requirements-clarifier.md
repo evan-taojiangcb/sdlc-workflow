@@ -2,11 +2,11 @@
 
 ## 输入
 
-`docs/iterations/YYYY-MM-DD/<slug>-<type>/requirements.md`
+`docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/requirements.md`
 
 ## 输出
 
-更新后的 `docs/iterations/YYYY-MM-DD/<slug>-<type>/requirements.md`（带置信度标注）
+更新后的 `docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/requirements.md`（带置信度标注）
 
 ## 详细行为
 
@@ -130,7 +130,7 @@ openclaw message send \
 
 ```bash
 # 1. 读取 requirements.md
-REQ_FILE="docs/iterations/$DATE/$SLUG-$TYPE/requirements.md"
+REQ_FILE="docs/iterations/$DATE/$SEQ-$SLUG-$TYPE/requirements.md"
 
 # 2. 分析置信度
 CLAUDE 分析每条需求，计算置信度

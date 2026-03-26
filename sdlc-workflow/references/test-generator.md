@@ -2,7 +2,7 @@
 
 ## 输入
 
-1. `docs/iterations/YYYY-MM-DD/<slug>-<type>/tasks.md`
+1. `docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/tasks.md`
 2. `git diff`（代码变更）
 
 ## 输出
@@ -124,7 +124,7 @@ test.describe('User Authentication Flow', () => {
 ## 基本信息
 
 - **生成时间**: YYYY-MM-DD HH:mm:ss
-- **迭代**: docs/iterations/<date>/<slug>-<type>/
+- **迭代**: docs/iterations/<date>/<seq>-<slug>-<type>/
 - **测试框架**: $TEST_FRAMEWORK
 - **E2E 框架**: $E2E_FRAMEWORK
 
@@ -175,7 +175,7 @@ const taskTestMapping = {
 set -euo pipefail
 
 SLUG="$1"
-ITER_DIR="docs/iterations/$DATE/$SLUG-$TYPE"
+ITER_DIR="docs/iterations/$DATE/$SEQ-$SLUG-$TYPE"
 TASKS_FILE="$ITER_DIR/tasks.md"
 
 # 读取测试框架配置
@@ -232,7 +232,7 @@ ls -la tests/unit/${SLUG}.test.ts tests/e2e/${SLUG}.e2e.ts
 ## 相关文件
 
 - 输入：
-  - docs/iterations/YYYY-MM-DD/<slug>-<type>/tasks.md
+  - docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/tasks.md
   - git diff（代码变更）
 - 输出：
   - tests/unit/<slug>.test.ts

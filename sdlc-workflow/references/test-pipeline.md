@@ -144,7 +144,7 @@ cat > "$REPORT_FILE" << 'EOF'
 ## 基本信息
 
 - **执行时间**: YYYY-MM-DD HH:mm:ss
-- **迭代**: <slug>-<type>
+- **迭代**: <seq>-<slug>-<type>
 - **测试框架**: $TEST_FRAMEWORK
 - **E2E 框架**: $E2E_FRAMEWORK
 

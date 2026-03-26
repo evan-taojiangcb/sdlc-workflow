@@ -2,8 +2,8 @@
 
 ## 输入
 
-1. `docs/iterations/YYYY-MM-DD/<slug>-<type>/design.md`
-2. `docs/iterations/YYYY-MM-DD/<slug>-<type>/tasks.md`
+1. `docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/design.md`
+2. `docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/tasks.md`
 3. `docs/ARCHITECTURE.md`
 4. `docs/SECURITY.md`
 
@@ -127,7 +127,7 @@ Codex 返回格式：
 #!/bin/bash
 set -euo pipefail
 
-ITER_DIR="docs/iterations/$DATE/$SLUG-$TYPE"
+ITER_DIR="docs/iterations/$DATE/$SEQ-$SLUG-$TYPE"
 DESIGN_FILE="$ITER_DIR/design.md"
 TASKS_FILE="$ITER_DIR/tasks.md"
 ARCH_FILE="docs/ARCHITECTURE.md"
