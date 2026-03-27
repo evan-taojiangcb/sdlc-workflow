@@ -65,18 +65,6 @@
 
 ---
 
-## 三种模式
-
-| 命令 | 适用场景 | 步骤数 |
-|------|---------|--------|
-| `/sdlc-workflow init` | 项目接入，生成配置和 baseline | 一次性 |
-| `/sdlc-workflow doit` | 正常 feature/fix，完整 SDLC 流程 | 12 步 |
-| `/sdlc-workflow mini` | 微小 UI 调整/文案修改 | 精简（但仍有 Gate） |
-
-**mini 不是"跳过流程"**：浏览器验收不精简，Gate 不跳过。影响 > 3 文件或改 API/数据模型时自动升级到 doit。
-
----
-
 ## 安装
 
 ### 一键安装（推荐）
@@ -161,6 +149,12 @@ openclaw channel info telegram       # 获取你的账号数字 ID
 | `/sdlc-workflow doit` | 正常 feature/fix，完整 SDLC 流程 | 12 步 |
 | `/sdlc-workflow mini` | 微小 UI 调整/文案修改 | 10 步（精简） |
 
+
+**mini 不是"跳过流程"**：浏览器验收不精简，Gate 不跳过。影响 > 3 文件或改 API/数据模型时自动升级到 doit。
+
+
+---
+
 ## 目录结构
 
 ```
@@ -198,7 +192,7 @@ sdlc-doit/                  # /sdlc-doit 入口 Skill
 sdlc-doit-mini/             # /sdlc-doit-mini 入口 Skill
 ```
 
-## 配置项
+## evn 配置项
 
 在项目根目录的 `.env` 中配置（`/sdlc-workflow init` 会自动生成）：
 
@@ -227,22 +221,6 @@ sdlc-doit-mini/             # /sdlc-doit-mini 入口 Skill
 
 ---
 
-## 目录结构
-
-```
-.claude-plugin/marketplace.json    ← 一键安装配置
-sdlc-workflow/                     ← 核心 Skill
-├── SKILL.md                       #   主流程规范
-├── references/                    #   15 个步骤详细规范
-├── scripts/                       #   初始化脚本
-└── templates/                     #   项目模板文件
-sdlc-init/                         ← /sdlc-init 入口
-sdlc-doit/                         ← /sdlc-doit 入口
-sdlc-doit-mini/                    ← /sdlc-doit-mini 入口
-```
-
----
-
 ## FAQ
 
 **Q: 没有 Codex CLI 能用吗？**
@@ -256,6 +234,11 @@ sdlc-doit-mini/                    ← /sdlc-doit-mini 入口
 
 **Q: 会话中断了怎么办？**
 > 下一个 session 读取 `docs/iterations/` 和 Git 状态即可续跑。所有中间产物都已持久化在文件系统里。
+
+---
+
+## 实践工程案例
+https://github.com/evan-taojiangcb/btc-trade/pulls
 
 ---
 
