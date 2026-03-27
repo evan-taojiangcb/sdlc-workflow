@@ -7,7 +7,7 @@ description: >-
   running automated development workflow.
   Triggers: start workflow, new feature, process requirement, run pipeline,
   SDLC, digital worker, development automation, requirements to PR.
-argument-hint: "需求描述 | file:///path | https://jira.xxx/PROJ-123"
+argument-hint: "init [配置] | doit <需求> | mini <小任务>"
 homepage: https://github.com/<org>/sdlc-workflow
 metadata:
   openclaw:
@@ -34,13 +34,13 @@ metadata:
 
 ## 命令分工
 
-当前推荐入口：
+当前稳定入口是单入口多模式：
 
-- `/sdlc-init`：初始化或接入项目
-- `/sdlc-doit`：标准需求完整流程
-- `/sdlc-doit-mini`：小任务轻量流程
+- `/sdlc-workflow init`：初始化或接入项目
+- `/sdlc-workflow doit`：标准需求完整流程
+- `/sdlc-workflow mini`：小任务轻量流程
 
-`/sdlc-workflow` 保留为兼容入口，等价于标准流程入口。
+分入口目录 `sdlc-init`、`sdlc-doit`、`sdlc-doit-mini` 仍保留为实现和实验形态，但对外推荐统一使用 `/sdlc-workflow`，以降低技能注册和热加载不稳定带来的问题。
 
 注意：
 

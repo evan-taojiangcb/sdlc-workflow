@@ -1,14 +1,15 @@
 # SDLC Workflow Suite — AI 驱动的自动化开发流水线
 
-基于 Google Cloud 5 种 Agent 设计模式 + Claude Code Skills 架构，构建可编排的自动化 SDLC 工作流。
+基于 Claude Code Skills、Codex CLI 审查门禁和浏览器 MCP 验收构建的可编排 SDLC 工作流。
 
-推荐入口已拆分为：
+当前推荐入口是单入口多模式：
 
-- `/sdlc-init`
-- `/sdlc-doit`
-- `/sdlc-doit-mini`
+- `/sdlc-workflow`
+- `/sdlc-workflow init ...`
+- `/sdlc-workflow doit ...`
+- `/sdlc-workflow mini ...`
 
-`/sdlc-workflow` 保留为兼容入口，可视作旧版标准流程。
+这样做的目标是降低技能注册和运行器兼容性问题。分入口目录仍保留，但对外使用建议统一收束到 `/sdlc-workflow`。
 
 **单 Agent 模式** + **双模型把关**（Claude Code 生成 / Codex CLI 审查）
 
@@ -25,7 +26,7 @@
 
 ## 功能特性
 
-- **三入口命令**：init / full / mini 分流
+- **单入口多模式**：init / doit / mini 分流
 - **12 步完整 Pipeline**：从需求到 PR 的全流程自动化
 - **双模型审核**：Claude Code 生成 + Codex CLI 独立审查
 - **TG 通知**：关键节点实时推送 Telegram 通知
@@ -71,9 +72,9 @@ git clone https://github.com/<org>/sdlc-workflow ~/.agents/skills/sdlc-workflow
 在任意项目目录中：
 
 ```bash
-/sdlc-init "tg=@your_name review=1"
-/sdlc-doit 创建一个用户登录模块
-/sdlc-doit-mini 把首页背景改成红色
+/sdlc-workflow init "tg=@your_name review=1"
+/sdlc-workflow doit 创建一个用户登录模块
+/sdlc-workflow mini 把首页背景改成红色
 ```
 
 自动流程：
@@ -100,25 +101,25 @@ git clone https://github.com/<org>/sdlc-workflow ~/.agents/skills/sdlc-workflow
 ### 后续使用
 
 ```bash
-/sdlc-doit 添加密码重置功能
-/sdlc-doit file:///path/to/requirements.txt
-/sdlc-doit https://jira.company.com/browse/PROJ-123
-/sdlc-doit-mini 调整首页 Hero 文案
+/sdlc-workflow doit 添加密码重置功能
+/sdlc-workflow doit file:///path/to/requirements.txt
+/sdlc-workflow doit https://jira.company.com/browse/PROJ-123
+/sdlc-workflow mini 调整首页 Hero 文案
 ```
 
 ---
 
 ## 命令入口
 
-### `/sdlc-init`
+### `/sdlc-workflow init`
 
 用于初始化或接入 existing project。
 
-### `/sdlc-doit`
+### `/sdlc-workflow doit`
 
 用于标准需求的完整 SDLC 流程。
 
-### `/sdlc-doit-mini`
+### `/sdlc-workflow mini`
 
 用于微小任务，最终验收仍基于 Chrome DevTools MCP + WebMCP。
 它不会跳过 gate；mini 模式仍需执行精简版 Gate 1、验证能力检测、Gate 2 和最终 MCP 验收。
