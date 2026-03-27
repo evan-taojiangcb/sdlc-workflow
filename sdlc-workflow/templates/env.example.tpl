@@ -7,10 +7,17 @@
 # 通知配置
 # ──────────────────────────────────────────────────────────────
 
-# [必需] Telegram 用户名（通知接收方）
+# [必需] Telegram 通知目标
 # 说明: 工作流关键节点（需求收录/Review/测试/完成）的通知目标
-# 格式: 不带 @ 前缀的 Telegram 用户名
-# 示例: TG_USERNAME=john_doe
+# 格式: Telegram 账号数字 ID 或 chat_id
+# 示例: TG_USERNAME=123456789
+#
+# ⚠️ 前置条件: 使用前需先配置 OpenClaw CLI 并获取你的 Telegram 账号 ID
+#   1. 安装: npm install -g openclaw
+#   2. 登录: openclaw auth login
+#   3. 绑定 TG: openclaw channel connect telegram
+#   4. 获取 ID: openclaw channel info telegram → 得到数字 ID
+#
 # 注意: 若通过 TG/OpenClaw 触发工作流，此值会自动从触发上下文获取并写入
 TG_USERNAME=
 

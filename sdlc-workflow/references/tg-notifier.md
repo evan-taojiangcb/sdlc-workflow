@@ -4,9 +4,29 @@
 
 所有 Pipeline 通知统一通过 OpenClaw CLI 发送 Telegram 消息。
 
+## 前置条件
+
+用户需提前配置好 OpenClaw 并获取 Telegram 用户 ID：
+
+```bash
+# 1. 安装 OpenClaw CLI
+npm install -g openclaw
+
+# 2. 登录
+openclaw auth login
+
+# 3. 绑定 Telegram
+openclaw channel connect telegram
+
+# 4. 获取你的 Telegram 用户 ID（数字）
+openclaw channel info telegram
+# → 记下输出的数字 ID，填入 .env 的 TG_USERNAME 字段
+```
+
 ## 发送命令
 
 ```bash
+# TG_USERNAME 为 Telegram 账号数字 ID 或 chat_id
 openclaw message send --channel telegram --target "$TG_USERNAME" --message "$MSG"
 ```
 
@@ -21,14 +41,34 @@ openclaw message send --channel telegram --target "$TG_USERNAME" --message "$MSG
 
 ## 通知列表
 
-### 1. 需求收录
+### 1. 初始化完成
+
+**fresh project：**
+```
+🚀 项目初始化完成（fresh project）
+📂 .claude/CLAUDE.md ✅
+📂 .claude/rules/workflow-rules.md ✅
+📂 docs/ 基础文档 ✅
+⚙️ .env 配置已就绪
+```
+
+**existing project：**
+```
+🚀 项目初始化完成（existing project）
+📄 PROJECT_BASELINE.md ✅
+📄 EXISTING_STRUCTURE.md ✅
+📄 TEST_BASELINE.md ✅
+🔒 结构保护规则已生效
+```
+
+### 2. 需求收录
 
 ```
 📥 需求已收录: <需求摘要前50字>
 📂 迭代目录: docs/iterations/<date>/<seq>-<slug>-<type>/
 ```
 
-### 2. 需求澄清（低置信度时）
+### 3. 需求澄清（低置信度时）
 
 ```
 ❓ 需确认以下问题（已标注假设，流程继续）：
@@ -42,7 +82,22 @@ openclaw message send --channel telegram --target "$TG_USERNAME" --message "$MSG
 请通过 TG 回复确认。
 ```
 
-### 3. 设计 Review 结果（Gate 1）
+### 4. 设计文档生成
+
+```
+🎨 设计文档已生成: docs/iterations/<date>/<seq>-<slug>-<type>/design.md
+📋 包含: 技术方案、API 设计、数据模型、安全考量
+```
+
+### 5. 任务分解完成
+
+```
+📋 任务分解完成: <任务总数> 个任务
+⏱ 预估工时: <总工时>
+📂 详见: docs/iterations/<date>/<seq>-<slug>-<type>/tasks.md
+```
+
+### 6. 设计 Review 结果（Gate 1）
 
 **通过：**
 ```
@@ -64,7 +119,30 @@ openclaw message send --channel telegram --target "$TG_USERNAME" --message "$MSG
 💡 修复后可从步骤③手动恢复
 ```
 
-### 4. Code Review 结果（Gate 2）
+### 7. 开始实现
+
+```
+🔨 开始实现: <需求摘要前50字>
+📋 任务数: <总任务数>
+```
+
+### 8. 实现完成
+
+```
+🔨 实现完成: <已完成任务数>/<总任务数>
+📄 变更文件: <N> files
+```
+
+### 9. 测试用例生成
+
+```
+🧪 测试用例已生成:
+📂 tests/unit/web|server|packages/...
+📂 tests/e2e/<slug>/E2E-<nnn>-<scenario>.e2e.ts
+📋 详见: tests/reports/<slug>-coverage.md
+```
+
+### 10. Code Review 结果（Gate 2）
 
 **通过：**
 ```
@@ -86,7 +164,7 @@ openclaw message send --channel telegram --target "$TG_USERNAME" --message "$MSG
 📂 保留当前代码待人工修复
 ```
 
-### 5. 测试完成
+### 11. 测试完成
 
 **全部通过：**
 ```
@@ -108,7 +186,7 @@ openclaw message send --channel telegram --target "$TG_USERNAME" --message "$MSG
 📋 失败测试: <列表>
 ```
 
-### 6. 文档更新完成
+### 12. 文档更新完成
 
 ```
 📝 文档已更新:
@@ -119,7 +197,7 @@ openclaw message send --channel telegram --target "$TG_USERNAME" --message "$MSG
 📄 .claude/CLAUDE.md (iterations 引用已更新)
 ```
 
-### 7. 迭代完成（最终通知）
+### 13. 迭代完成（最终通知）
 
 ```
 ✅ 迭代完成!

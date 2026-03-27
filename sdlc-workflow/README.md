@@ -54,13 +54,13 @@
 ### 方式 1: skills CLI（推荐）
 
 ```bash
-npx skills add <org>/sdlc-workflow -g -y
+npx skills add evan-taojiangcb/sdlc-workflow -g -y
 ```
 
 ### 方式 2: git clone
 
 ```bash
-git clone https://github.com/<org>/sdlc-workflow ~/.agents/skills/sdlc-workflow
+git clone https://github.com/evan-taojiangcb/sdlc-workflow ~/.agents/skills/sdlc-workflow
 ```
 
 ---

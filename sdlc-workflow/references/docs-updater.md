@@ -255,6 +255,14 @@ update_iterations_reference() {
 update_iterations_reference
 
 echo "✅ 文档更新完成"
+
+# TG 通知
+notify_tg "📝 文档已更新:
+📄 README.md
+📄 docs/ARCHITECTURE.md
+📄 docs/SECURITY.md
+📄 docs/CODING_GUIDELINES.md
+📄 .claude/CLAUDE.md (iterations 引用已更新)"
 ```
 
 ## 错误处理

@@ -1,0 +1,25 @@
+{
+  "name": "sdlc-workflow",
+  "owner": {
+    "name": "Evan",
+    "email": ""
+  },
+  "metadata": {
+    "description": "AI-driven 24h SDLC automation pipeline with dual-model review gates and Telegram notifications",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "sdlc-full",
+      "description": "Full SDLC workflow suite: init project onboarding, standard 12-step pipeline (doit), and lightweight mini pipeline (doit-mini) with dual Codex review gates and Telegram notifications",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./sdlc-workflow",
+        "./sdlc-init",
+        "./sdlc-doit",
+        "./sdlc-doit-mini"
+      ]
+    }
+  ]
+}

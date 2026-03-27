@@ -201,6 +201,12 @@ EOF
 
 echo "✅ 测试用例生成完成"
 ls -la "tests/unit/web/logic/${SLUG}.test.ts" "tests/e2e/${SLUG}/E2E-001-${SLUG}.e2e.ts"
+
+# TG 通知
+notify_tg "🧪 测试用例已生成:
+📂 tests/unit/web|server|packages/...
+📂 tests/e2e/${SLUG}/E2E-001-${SLUG}.e2e.ts
+📋 详见: tests/reports/${SLUG}-coverage.md"
 ```
 
 ## 错误处理

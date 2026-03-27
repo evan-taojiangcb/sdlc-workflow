@@ -5,13 +5,24 @@ description: >-
   existing projects, bootstraps workflow files, runs baseline intake for
   existing codebases, and writes minimal workflow config such as TG username
   and review rounds.
-argument-hint: '可选: "tg=@evan review=1 branch=feat/ test-bootstrap=report"'
-homepage: https://github.com/<org>/sdlc-workflow
+argument-hint: '可选: "tg=123456789 review=1 branch=feat/ test-bootstrap=report"'
+homepage: https://github.com/evan-taojiangcb/sdlc-workflow
 ---
 
 # /sdlc-init
 
 只做初始化和接入，不做需求开发。
+
+## 前置条件
+
+使用 TG 通知前，需先配置好 OpenClaw CLI 并获取你的 Telegram 账号 ID：
+
+```bash
+npm install -g openclaw    # 安装
+openclaw auth login         # 登录
+openclaw channel connect telegram  # 绑定 Telegram
+openclaw channel info telegram     # 获取你的账号数字 ID
+```
 
 ## 目标
 
@@ -24,7 +35,7 @@ homepage: https://github.com/<org>/sdlc-workflow
 
 支持自然语言或键值对，优先提取：
 
-- `tg=@username`
+- `tg=123456789` — Telegram 账号数字 ID 或 chat_id
 - `review=1`
 - `branch=feat/`
 - `test-bootstrap=report|auto|never`
@@ -60,6 +71,27 @@ bash ../sdlc-workflow/scripts/update-workflow-config.sh --project-root . --tg <u
    - `docs/EXISTING_STRUCTURE.md`
    - `docs/TEST_BASELINE.md`
 
+## TG 通知
+
+初始化完成后必须发送 TG 通知（模板详见 `../sdlc-workflow/references/tg-notifier.md`）：
+
+```bash
+# fresh project
+notify_tg "🚀 项目初始化完成（fresh project）
+📂 .claude/CLAUDE.md ✅
+📂 docs/ 基础文档 ✅
+⚙️ .env 配置已就绪"
+
+# existing project
+notify_tg "🚀 项目初始化完成（existing project）
+📄 PROJECT_BASELINE.md ✅
+📄 EXISTING_STRUCTURE.md ✅
+📄 TEST_BASELINE.md ✅
+🔒 结构保护规则已生效"
+```
+
+通知失败不阻塞流程。
+
 ## 输出
 
 - `.claude/CLAUDE.md`
@@ -80,4 +112,5 @@ bash ../sdlc-workflow/scripts/update-workflow-config.sh --project-root . --tg <u
 3. 是否已写入 `TG_USERNAME`
 4. `REVIEW_MAX_ROUNDS` 当前值
 5. `TEST_BOOTSTRAP_POLICY` 当前值
-6. 后续建议使用 `/sdlc-doit` 还是 `/sdlc-doit-mini`
+6. TG 通知是否已发送
+7. 后续建议使用 `/sdlc-doit` 还是 `/sdlc-doit-mini`

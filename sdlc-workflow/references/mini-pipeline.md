@@ -35,6 +35,12 @@ docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/
 3. 写明验收条件
 4. 标注 `Change Size: Micro`
 
+**TG 通知**：
+
+```bash
+notify_tg "📥 mini 需求已收录: <需求摘要前50字>"
+```
+
 ### Step 3. Write design.md
 
 要求：
@@ -70,9 +76,27 @@ docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/
 
 - 立即中止或升级到 `/sdlc-doit`
 
+**TG 通知**：
+
+```bash
+# 通过
+notify_tg "🔍 mini Gate 1: PASS ✅
+📋 确认为微变更，无架构影响"
+
+# 失败 → 升级
+notify_tg "⚠️ mini Gate 1: FAIL → 自动升级到 doit 模式
+📋 原因: <影响范围超出 mini 标准>"
+```
+
 ### Step 6. Implement
 
 只有 Gate 1 通过后，才允许开始修改业务代码。
+
+**TG 通知**：
+
+```bash
+notify_tg "🔨 mini 开始实现: <需求摘要前50字>"
+```
 
 ### Step 7. Validation Capability Detection
 
@@ -97,6 +121,21 @@ docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/
 3. `tasks.md` 是否已同步回写
 4. 是否存在不必要的测试或基础设施改动
 
+**TG 通知**：
+
+```bash
+# 通过
+notify_tg "🔍 mini Gate 2: PASS ✅
+🛡️ 代码变更已确认安全"
+
+# 失败
+notify_tg "🔍 mini Gate 2 第{N}轮: <问题摘要>
+📝 Claude 正在修复..."
+
+# 超限
+notify_tg "⚠️ mini Gate 2 超过 {N} 轮，需人工介入"
+```
+
 ### Step 9. Final Validation
 
 最终必须执行：
@@ -106,6 +145,19 @@ docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/
 3. WebMCP
 
 最终通过结论只能由 Chrome DevTools MCP + WebMCP 给出。
+
+**TG 通知**：
+
+```bash
+# 全部通过
+notify_tg "🧪 mini 验收通过 ✅
+📊 Chrome DevTools MCP: ✅ | WebMCP: ✅"
+
+# 失败
+notify_tg "🧪 mini 验收失败:
+📋 失败项: <列表>
+📝 Claude 正在修复..."
+```
 
 ### Step 10. Final Report
 
@@ -121,10 +173,21 @@ docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/
 8. Tasks status
 9. Residual risks
 
+**TG 通知（最终）**：
+
+```bash
+notify_tg "✅ mini 迭代完成!
+📝 提交: <commit-message>
+📊 变更: <N> files
+🧪 验收: Chrome MCP ✅ | WebMCP ✅
+📂 报告: docs/iterations/<date>/<seq>-<slug>-<type>/"
+```
+
 ## Hard Rules
 
 1. 不得在 Step 1-4 之前直接编辑业务代码
 2. 不得跳过 Gate 1
 3. 不得跳过 validation capability detection
 4. 不得跳过 Gate 2
-5. 不得用“手工观察页面”替代最终 MCP 验收
+5. 不得用"手工观察页面"替代最终 MCP 验收
+6. 关键步骤（Gate 1/2、验收、完成）必须发送 TG 通知

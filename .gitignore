@@ -1,0 +1,28 @@
+# .gitignore — SDLC Workflow Suite
+
+# ─── OS ───
+.DS_Store
+Thumbs.db
+
+# ─── IDE / Editor ───
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ─── Node ───
+node_modules/
+npm-debug.log*
+
+# ─── Claude Code 本地配置（每个开发者的个人权限，不应提交） ───
+.claude/settings.local.json
+
+# ─── Playwright MCP 运行时缓存 ───
+.playwright-mcp/
+
+# ─── 开发过程中的临时测试报告（日期戳文件） ───
+# 这些是单次测试/验证的产物，不是 skill 定义的一部分
+*-REPORT-*.md
+BEFORE-STATE-*.md
+REVIEW-*.md
+VALIDATION-*.md

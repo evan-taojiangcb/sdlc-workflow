@@ -267,6 +267,12 @@ TEMPLATE
 # 5. 验证任务完整性
 TOTAL_TASKS=$(grep -c "^### T-" "$TASKS_FILE")
 echo "生成了 $TOTAL_TASKS 个任务"
+
+# 6. TG 通知
+TOTAL_HOURS=$(grep -oP '预估工时: \K[0-9]+' "$TASKS_FILE" | awk '{s+=$1}END{print s}')
+notify_tg "📋 任务分解完成: $TOTAL_TASKS 个任务
+⏱ 预估工时: ${TOTAL_HOURS}h
+📂 详见: docs/iterations/$DATE/$SEQ-$SLUG-$TYPE/tasks.md"
 ```
 
 ## 错误处理

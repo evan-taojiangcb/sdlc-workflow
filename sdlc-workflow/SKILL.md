@@ -8,7 +8,7 @@ description: >-
   Triggers: start workflow, new feature, process requirement, run pipeline,
   SDLC, digital worker, development automation, requirements to PR.
 argument-hint: "init [配置] | doit <需求> | mini <小任务>"
-homepage: https://github.com/<org>/sdlc-workflow
+homepage: https://github.com/evan-taojiangcb/sdlc-workflow
 metadata:
   openclaw:
     emoji: "🏭"
@@ -62,7 +62,7 @@ metadata:
 2. 检测 `.claude/CLAUDE.md` 和 `docs/ARCHITECTURE.md` 是否存在
 3. 若两者都存在 → 项目已初始化，跳过，直接进入 Part 2
 4. 若任一不存在 → 执行初始化：
-   - 运行 `bash ~/.agents/skills/sdlc-workflow/scripts/init-project.sh .`
+   - 运行 `bash <skill-root>/sdlc-workflow/scripts/init-project.sh .`（`<skill-root>` 为 Skill 安装目录，如 `~/.claude/skills`）
    - 生成项目结构（.claude/, docs/, tests/, .env.example）
    - 提醒用户：若 `.env` 不存在，从 `.env.example` 复制并填写 TG_USERNAME
 5. 若判定为 existing project，则初始化后必须先执行 `references/existing-project-intake.md`：
@@ -78,7 +78,7 @@ Pipeline 启动时按以下优先级确定 TG_USERNAME：
 1. **运行时上下文检测**（TG/OpenClaw 触发场景）：
    - 检查环境变量 `OPENCLAW_TRIGGER_USER`（OpenClaw 触发时自动注入）
    - 若存在 → 初始化阶段自动创建 `.env`（若缺失）并写入 `TG_USERNAME`
-   - 日志: "📱 检测到 TG 用户: @<username>，已自动配置"
+   - 日志: "📱 检测到 TG 用户: <user_id>，已自动配置"
 
 2. **读取 `.env` 文件**：
    - 若 `.env` 存在且 TG_USERNAME 已设置 → 使用该值
@@ -94,7 +94,7 @@ Pipeline 启动时按以下优先级确定 TG_USERNAME：
 
 | 变量 | 默认值 | 说明 |
 |------|--------|------|
-| TG_USERNAME | (空) | 必需，Telegram 用户名 |
+| TG_USERNAME | (空) | 必需，Telegram 账号数字 ID 或 chat_id |
 | TEST_FRAMEWORK | jest | 单元测试框架 |
 | E2E_FRAMEWORK | playwright | 固定 E2E 测试框架 |
 | LINT_TOOL | eslint | Lint 工具 |
@@ -201,10 +201,12 @@ MKDIR -p "$ITER_DIR"
 - 设计必须声明代码落位：默认遵循 Better-T-Stack 风格 `apps/web` / `apps/server` / 条件启用的 `packages/*`
 - 若为 existing project，必须明确说明“沿用既有结构”还是“本轮经批准的结构调整”
 - 输出：docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/design.md
+- 通知 TG: 🎨 设计文档已生成
 
 #### ④ task-generator
 - 输入：design.md
 - 输出：docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/tasks.md
+- 通知 TG: 📋 任务分解完成: <任务数> 个任务 | 预估工时: <总工时>
 
 #### ⑤ design-reviewer (Gate 1)
 ```
@@ -225,11 +227,15 @@ WHILE round <= REVIEW_MAX_ROUNDS:
 ```
 
 #### ⑥ Claude Code 开发
+- 通知 TG: 🔨 开始实现: <需求摘要前50字>
+
 按 tasks.md 逐任务实现代码，并在实现偏离 design.md 时同步修订 design/tasks，避免 Gate 2 审查对象与真实代码脱节。每完成一个任务后，必须同步回写 `tasks.md`：
 
 - 将任务标题从 `### [ ] T-xxx` 改为 `### [x] T-xxx`
 - 将该任务下已实际满足的验收标准勾选为 `[x]`
 - 未完成或部分完成的任务不得提前勾选
+
+- 通知 TG: 🔨 实现完成: <已完成任务数>/<总任务数>
 
 #### ⑦ test-generator
 - 输入：tasks.md + git diff
@@ -237,6 +243,7 @@ WHILE round <= REVIEW_MAX_ROUNDS:
   - tests/unit/web|server|packages/...
   - tests/e2e/<slug>/E2E-<nnn>-<scenario>.e2e.ts
   - tests/reports/<slug>-coverage.md
+- 通知 TG: 🧪 测试用例已生成
 
 #### ⑧ code-reviewer (Gate 2)
 ```
@@ -289,6 +296,7 @@ IF any failure:
 - docs/SECURITY.md — 安全相关变更
 - docs/CODING_GUIDELINES.md — 新模式/约定
 - .claude/CLAUDE.md — **更新 iterations 引用列表**
+- 通知 TG: 📝 文档已更新: <更新文件列表>
 
 #### ⑪ git-committer
 ```bash
@@ -305,19 +313,28 @@ PR_URL=$(gh pr view --json url --jq .url)
 
 ## TG 通知命令
 
-所有通知统一使用 OpenClaw CLI：
+所有通知统一使用 OpenClaw CLI（用户需提前配置：`openclaw auth login && openclaw channel connect telegram`）：
 ```bash
+# TG_USERNAME 为 Telegram 账号数字 ID 或 chat_id
 openclaw message send --channel telegram --target "$TG_USERNAME" --message "$MSG"
 ```
 
-通知列表：
-1. 需求收录：📥 需求已收录: <摘要前50字>
-2. 需求澄清：❓ 需确认: <问题列表>（已标注假设，流程继续）
-3. 设计 Review：🔍 设计 Review: PASS ✅ 或 🔍 设计 Review 第N轮: <问题摘要>
-4. Code Review：🔍 Code Review: PASS ✅ 或 🔍 Code Review 第N轮: <问题列表>
-5. 测试完成：🧪 测试结果: <通过数>/<总数> 通过 或 🧪 失败用例: <列表>
-6. 循环超限：⚠️ 需人工介入: <Gate名称> 超过 N 轮未通过
-7. 迭代完成：✅ PR: <url> | 变更: N files | 测试: 全部通过
+通知列表（共 13 个通知点，覆盖所有关键环节）：
+1. 初始化完成：🚀 项目初始化完成（fresh/existing）
+2. 需求收录：📥 需求已收录: <摘要前50字>
+3. 需求澄清：❓ 需确认: <问题列表>（已标注假设，流程继续）
+4. 设计生成：🎨 设计文档已生成
+5. 任务分解：📋 任务分解完成: <任务数> 个任务 | 预估工时: <总工时>
+6. 设计 Review：🔍 设计 Review: PASS ✅ 或 🔍 设计 Review 第N轮: <问题摘要>
+7. 开始实现：🔨 开始实现: <需求摘要> → 实现完成: <已完成>/<总数>
+8. 测试生成：🧪 测试用例已生成
+9. Code Review：🔍 Code Review: PASS ✅ 或 🔍 Code Review 第N轮: <问题列表>
+10. 测试结果：🧪 测试结果: <通过数>/<总数> 通过 或 🧪 失败用例: <列表>
+11. 文档更新：📝 文档已更新: <更新文件列表>
+12. 迭代完成：✅ PR: <url> | 变更: N files | 测试: 全部通过
+
+超限通知（任何 Gate/测试循环超限时触发）：
+- ⚠️ 需人工介入: <Gate名称> 超过 N 轮未通过
 
 ## 循环与回退规则
 
@@ -340,8 +357,8 @@ openclaw message send --channel telegram --target "$TG_USERNAME" --message "$MSG
 9. **渐进式加载**：SKILL.md ≤500 行，详细规范按需从 references/ 加载
 10. **模板不覆盖**：init-project.sh 不覆盖已存在的文件
 11. **统一测试目录**：单元测试只能写入 `tests/unit/web|server|packages`，E2E 只能写入 `tests/e2e/`，报告写入 `tests/reports/`
-13. **E2E 证据要求**：关键用户路径的最终报告必须以 Chrome DevTools MCP 和 WebMCP 的交互验证结果为准；Playwright 仅作为预检
-14. **需求到测试唯一映射**：requirements、tasks、E2E 场景必须有唯一 ID 映射，禁止重复覆盖同一需求路径
-12. **迭代可追溯**：docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/
-13. **审查门禁不可降级**：Codex CLI 不可用时必须中止，不能自动跳过 Gate
-14. **全栈目录约束**：默认采用 Better-T-Stack 风格 monorepo，业务代码不应随意落到根目录级 `web/`/`api/`/`server/`
+12. **E2E 证据要求**：关键用户路径的最终报告必须以 Chrome DevTools MCP 和 WebMCP 的交互验证结果为准；Playwright 仅作为预检
+13. **需求到测试唯一映射**：requirements、tasks、E2E 场景必须有唯一 ID 映射，禁止重复覆盖同一需求路径
+14. **迭代可追溯**：docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/
+15. **审查门禁不可降级**：Codex CLI 不可用时必须中止，不能自动跳过 Gate
+16. **全栈目录约束**：默认采用 Better-T-Stack 风格 monorepo，业务代码不应随意落到根目录级 `web/`/`api/`/`server/`

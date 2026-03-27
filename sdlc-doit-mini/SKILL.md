@@ -5,7 +5,7 @@ description: >-
   copy edits, or small UI fixes. Keeps minimal iteration artifacts and final
   browser acceptance without allowing architecture drift.
 argument-hint: "小任务描述"
-homepage: https://github.com/<org>/sdlc-workflow
+homepage: https://github.com/evan-taojiangcb/sdlc-workflow
 ---
 
 # /sdlc-doit-mini
@@ -19,6 +19,7 @@ homepage: https://github.com/<org>/sdlc-workflow
 - `../sdlc-workflow/references/micro-change-mode.md`
 - `../sdlc-workflow/references/mini-pipeline.md`
 - `../sdlc-workflow/references/pipeline-overview.md`
+- `../sdlc-workflow/references/tg-notifier.md`
 
 ## 规则
 
@@ -38,9 +39,25 @@ homepage: https://github.com/<org>/sdlc-workflow
 11. OpenClaw / 远程场景不要依赖交互式 ask，优先输出报告和 TG 通知
 12. Playwright 只作为预检
 13. 最终通过依据必须是：
-   - Chrome DevTools MCP
-   - WebMCP
+    - Chrome DevTools MCP
+    - WebMCP
 14. 必须生成 mini 最终报告，记录 Gate、验证能力检测和 MCP 验收结果
+
+## TG 通知要求
+
+**mini 模式同样要求关键环节发送 TG 通知**，详见 `../sdlc-workflow/references/mini-pipeline.md` 中每个 Step 的通知定义。
+
+至少覆盖以下通知点：
+
+1. 📥 mini 需求已收录
+2. 🔍 mini Gate 1 结果
+3. 🔨 mini 开始实现
+4. 🔍 mini Gate 2 结果
+5. 🧪 mini 验收结果
+6. ✅ mini 迭代完成
+7. ⚠️ 循环超限（Gate 2 超限时触发）
+
+通知失败不阻塞流程（只 log）。
 
 ## 何时自动升级
 

@@ -243,6 +243,10 @@ if ! grep -q "## 1. 技术方案概要" "$DESIGN_FILE"; then
   echo "ERROR: design.md 缺少必需章节"
   exit 1
 fi
+
+# 5. TG 通知
+notify_tg "🎨 设计文档已生成: docs/iterations/$DATE/$SEQ-$SLUG-$TYPE/design.md
+📋 包含: 技术方案、API 设计、数据模型、安全考量"
 ```
 
 ## 错误处理

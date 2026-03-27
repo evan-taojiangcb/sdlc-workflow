@@ -44,7 +44,7 @@
 2. 运行初始化
 
 ```text
-/sdlc-workflow init "tg=@your_name review=1"
+/sdlc-workflow init "tg=123456789 review=1"
 ```
 
 说明：
@@ -117,33 +117,3 @@ docs/iterations/YYYY-MM-DD/001-home-bg-black-fix/
 说明：
 
 > Claude 负责生成，Codex CLI 负责 Gate 1 和 Gate 2 审查。gate 失败不能静默跳过。
-
-## Short Social Copy
-
-适合发 GitHub、X、朋友圈或群里的短文案：
-
-> I turned our Claude/OpenClaw workflow into a real SDLC system:
-> 
-> - existing project intake
-> - Better-T-Stack guardrails
-> - dual Codex review gates
-> - ordered iteration artifacts
-> - final browser acceptance via Chrome DevTools MCP + WebMCP
-> 
-> It now runs as:
-> 
-> `/sdlc-workflow init|doit|mini`
-
-## Recommended Recording Sequence
-
-如果你要录屏，建议顺序：
-
-1. 打开项目目录
-2. 执行 `init`
-3. 快速浏览 baseline 文档
-4. 执行 `mini`
-5. 打开 iteration 目录
-6. 打开浏览器验收报告
-7. 展示 git commit
-
-这样最容易在短时间内讲清楚产品价值。
