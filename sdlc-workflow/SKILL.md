@@ -42,6 +42,16 @@ metadata:
 
 `/sdlc-workflow` 保留为兼容入口，等价于标准流程入口。
 
+注意：
+
+- `/sdlc-doit-mini` 是轻量流程，不是跳过流程
+- mini 模式仍必须执行：
+  - iteration 产物生成
+  - mini Gate 1
+  - validation capability detection
+  - mini Gate 2
+  - Chrome DevTools MCP + WebMCP 最终验收
+
 ## 项目初始化
 
 检查当前项目是否已初始化 SDLC 工作流结构：

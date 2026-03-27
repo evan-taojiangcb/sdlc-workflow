@@ -121,6 +121,7 @@ git clone https://github.com/<org>/sdlc-workflow ~/.agents/skills/sdlc-workflow
 ### `/sdlc-doit-mini`
 
 用于微小任务，最终验收仍基于 Chrome DevTools MCP + WebMCP。
+它不会跳过 gate；mini 模式仍需执行精简版 Gate 1、验证能力检测、Gate 2 和最终 MCP 验收。
 
 ---
 
