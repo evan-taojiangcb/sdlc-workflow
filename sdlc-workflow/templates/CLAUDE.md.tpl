@@ -44,5 +44,7 @@ docs/iterations/
 
 ## SDLC Workflow
 本项目使用 sdlc-workflow 技能进行自动化开发。
-- 运行 `/sdlc-workflow <需求>` 启动开发流程
+- 首次接入运行 `/sdlc-init`
+- 标准需求运行 `/sdlc-doit <需求>`
+- 小任务运行 `/sdlc-doit-mini <需求>`
 - 配置见 `.env` 文件

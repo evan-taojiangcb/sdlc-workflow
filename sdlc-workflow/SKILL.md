@@ -32,6 +32,16 @@ metadata:
         label: "Install OpenClaw CLI"
 ---
 
+## 命令分工
+
+当前推荐入口：
+
+- `/sdlc-init`：初始化或接入项目
+- `/sdlc-doit`：标准需求完整流程
+- `/sdlc-doit-mini`：小任务轻量流程
+
+`/sdlc-workflow` 保留为兼容入口，等价于标准流程入口。
+
 ## 项目初始化
 
 检查当前项目是否已初始化 SDLC 工作流结构：

@@ -1,6 +1,14 @@
-# SDLC Workflow — AI 驱动的自动化开发流水线
+# SDLC Workflow Suite — AI 驱动的自动化开发流水线
 
 基于 Google Cloud 5 种 Agent 设计模式 + Claude Code Skills 架构，构建可编排的自动化 SDLC 工作流。
+
+推荐入口已拆分为：
+
+- `/sdlc-init`
+- `/sdlc-doit`
+- `/sdlc-doit-mini`
+
+`/sdlc-workflow` 保留为兼容入口，可视作旧版标准流程。
 
 **单 Agent 模式** + **双模型把关**（Claude Code 生成 / Codex CLI 审查）
 
@@ -17,6 +25,7 @@
 
 ## 功能特性
 
+- **三入口命令**：init / full / mini 分流
 - **12 步完整 Pipeline**：从需求到 PR 的全流程自动化
 - **双模型审核**：Claude Code 生成 + Codex CLI 独立审查
 - **TG 通知**：关键节点实时推送 Telegram 通知
@@ -62,7 +71,9 @@ git clone https://github.com/<org>/sdlc-workflow ~/.agents/skills/sdlc-workflow
 在任意项目目录中：
 
 ```bash
-/sdlc-workflow 创建一个用户登录模块
+/sdlc-init "tg=@your_name review=1"
+/sdlc-doit 创建一个用户登录模块
+/sdlc-doit-mini 把首页背景改成红色
 ```
 
 自动流程：
@@ -89,10 +100,27 @@ git clone https://github.com/<org>/sdlc-workflow ~/.agents/skills/sdlc-workflow
 ### 后续使用
 
 ```bash
-/sdlc-workflow 添加密码重置功能
-/sdlc-workflow file:///path/to/requirements.txt
-/sdlc-workflow https://jira.company.com/browse/PROJ-123
+/sdlc-doit 添加密码重置功能
+/sdlc-doit file:///path/to/requirements.txt
+/sdlc-doit https://jira.company.com/browse/PROJ-123
+/sdlc-doit-mini 调整首页 Hero 文案
 ```
+
+---
+
+## 命令入口
+
+### `/sdlc-init`
+
+用于初始化或接入 existing project。
+
+### `/sdlc-doit`
+
+用于标准需求的完整 SDLC 流程。
+
+### `/sdlc-doit-mini`
+
+用于微小任务，最终验收仍基于 Chrome DevTools MCP + WebMCP。
 
 ---
 
@@ -129,9 +157,10 @@ graph TD
 
 ```
 ├── SKILL.md                    # 入口（Pipeline 编排）
-├── references/                 # 12 个步骤详细规范
+├── references/                 # 共享步骤规范
 │   ├── pipeline-overview.md
 │   ├── existing-project-intake.md
+│   ├── micro-change-mode.md
 │   ├── requirements-ingestion.md
 │   ├── requirements-clarifier.md
 │   ├── design-generator.md
@@ -151,7 +180,8 @@ graph TD
 │   ├── CODING_GUIDELINES.md.tpl
 │   └── env.example.tpl
 ├── scripts/
-│   └── init-project.sh        # 项目初始化脚本
+│   ├── init-project.sh        # 项目初始化脚本
+│   └── update-workflow-config.sh
 └── README.md
 ```
 
