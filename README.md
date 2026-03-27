@@ -119,6 +119,49 @@ existing project 默认自动分析，通常只需要补：
 9. `Chrome DevTools MCP + WebMCP` 最终验收
 10. mini report + git commit
 
+## 命令流程图
+
+```mermaid
+flowchart TD
+    A["/sdlc-workflow <mode> <input>"] --> B{"mode"}
+    B -->|init| C["识别 fresh / existing"]
+    C --> D["生成 workflow 文件或 baseline"]
+    D --> E["写入最小配置并输出 init 摘要"]
+
+    B -->|doit| F["初始化检查"]
+    F --> G["requirements -> design -> tasks"]
+    G --> H["Gate 1 · Codex"]
+    H --> I["implementation"]
+    I --> J["test generation"]
+    J --> K["Gate 2 · Codex"]
+    K --> L["lint -> unit -> Playwright"]
+    L --> M["Chrome DevTools MCP -> WebMCP"]
+    M --> N["docs update -> git commit"]
+
+    B -->|mini| O["初始化检查"]
+    O --> P["mini requirements -> design -> tasks"]
+    P --> Q["mini Gate 1"]
+    Q --> R["minimal implementation"]
+    R --> S["validation capability detection"]
+    S --> T["mini Gate 2"]
+    T --> U["Chrome DevTools MCP -> WebMCP"]
+    U --> V["mini report -> git commit"]
+```
+
+## 30 秒 Demo
+
+如果你要做 GitHub 推广、发帖或录屏，最短可展示这条链路：
+
+1. 在一个已有项目里运行 `sdlc-workflow init "tg=@your_name review=1"`
+2. 展示生成的 baseline 文档和 workflow 配置
+3. 运行 `sdlc-workflow mini 把首页背景改成黑色`
+4. 展示 iteration 目录、mini gate、Chrome DevTools MCP / WebMCP 验收产物
+5. 展示最终 commit 和报告路径
+
+完整 demo 讲稿见：
+
+- [`examples/30-second-demo.md`](./examples/30-second-demo.md)
+
 ## 设计原则
 
 ### 1. 结构约束先于模型发挥
@@ -232,6 +275,7 @@ Playwright 只是预检，不是最终通过结论。
 - 详细设计说明：[`DESIGN.md`](./DESIGN.md)
 - 当前系统设计草案：[`plan-8.md`](./plan-8.md)
 - 核心技能说明：[`sdlc-workflow/README.md`](./sdlc-workflow/README.md)
+- 演示脚本：[`examples/30-second-demo.md`](./examples/30-second-demo.md)
 
 ## 当前状态
 

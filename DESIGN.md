@@ -163,6 +163,32 @@
 - workspace 改造
 - 跨模块重构
 
+### 5.4 Command Routing Diagram
+
+```mermaid
+flowchart TD
+    A["/sdlc-workflow <mode> <input>"] --> B{"mode"}
+    B -->|init| C["fresh / existing detection"]
+    C --> D["project bootstrap or baseline intake"]
+    D --> E["workflow config ready"]
+
+    B -->|doit| F["standard full-flow pipeline"]
+    F --> G["requirements -> design -> tasks"]
+    G --> H["Gate 1"]
+    H --> I["implementation"]
+    I --> J["tests + Gate 2"]
+    J --> K["browser acceptance"]
+    K --> L["docs + git delivery"]
+
+    B -->|mini| M["micro-change pipeline"]
+    M --> N["mini requirements -> design -> tasks"]
+    N --> O["mini Gate 1"]
+    O --> P["minimal implementation"]
+    P --> Q["capability detection + mini Gate 2"]
+    Q --> R["Chrome DevTools MCP + WebMCP"]
+    R --> S["mini report + git delivery"]
+```
+
 ---
 
 ## 6. System Principles
@@ -616,6 +642,22 @@ mini 任务下：
    - existing project example
 4. `CHANGELOG.md`
 5. `LICENSE`
+
+### 15.4 Demo-First Promotion Strategy
+
+如果目标是 GitHub 推广，而不是只给内部团队看，最有效的不是继续加规则，而是把“30 秒内能看懂价值”做出来。
+
+推荐推广素材：
+
+1. GitHub 首页 README
+2. 一份详细设计说明书
+3. 一个 30 秒 demo 脚本
+4. 一次 existing project mini-change 演示
+5. 一次 fresh project full-flow 演示
+
+这个仓库当前已经提供前 3 项。demo 脚本见：
+
+- `examples/30-second-demo.md`
 
 ---
 
