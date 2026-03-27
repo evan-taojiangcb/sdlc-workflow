@@ -20,22 +20,25 @@
 需求采集 → 需求澄清 → 设计生成 → 任务分解 → Gate 1 审查
 → 代码实现 → 测试生成 → Gate 2 审查 → 测试执行
 → 文档更新 → Git 提交 + PR → TG 通知
+
+三条线:
+init（初始化）：采集项目信息或初始化项目 → 生成baseline → 锁定结构
+doit（完整流程）：需求 → 澄清 → 设计 → 任务 → Gate1 → 开发 → 测试 → Gate2 → 验收 → 文档 → PR
+mini（精简流程）：需求 → 精简设计 → MiniGate1 → 实现 → MiniGate2 → 验收 → PR
 ```
 
 **核心特点**：
-
-- 🔒 **双模型把关**：Claude Code 生成代码，Codex CLI 独立审查（不降级、不跳过）
-- 📱 **13 个 TG 通知点**：每个关键环节都发 Telegram，人不在终端也能追踪
-- 🛡️ **Existing Project 安全**：自动生成 baseline，防止 AI 乱改你的项目结构
-- 🧪 **证据链验收**：Chrome DevTools MCP + WebMCP 做最终验收，不靠"看一眼"
-- 🦞 **远程开发**：支持 OpenClaw TG channel 频道，远程下达开发需求指令，开发过程实时追踪
 - 🤖 **AI 驱动**：完全由 AI 驱动，无需人工干预
-- 🎯 **全流程自动化**：从需求采集到 PR 合并，中间有设计审查、代码审查、浏览器验收，每一步都有产物、有证据、可恢复
+- 🦞 **远程驱动**：支持 OpenClaw TG channel 频道，远程下达开发需求指令，开发过程实时追踪任务进度
+- 🎯 **全流程自动化**：从需求采集到 PR 合并，中间有需求设计审查、代码审查、浏览器验收，每一步都有产物、有证据、可恢复
 - 🔧 **可恢复，不怕中断**：每轮需求生成结构化的 iteration 目录，会话中断后，依赖 Git + iteration 产物可以让下一个 session 续跑
-- 🔐 **三道门禁**：设计审查、代码审查、浏览器自动验收审查，严格把控交付质量
+- 🔐 **三道门禁**：需求设计审查、代码审查、浏览器自动验收审查，严格把控交付质量
+- 🔒 **双模型把关**：Claude Code 生成代码，Codex CLI 独立审查（不降级、不跳过）
+- 📱 **13 个 TG 通知点**：每个关键环节都发 Telegram，人不在电脑前也能追踪
+- 🛡️ **Existing Project 安全**：自动采集项目信息生成 baseline，防止 AI 乱改你的项目结构
+- 🧪 **证据链验收**：Chrome DevTools MCP + WebMCP 做最终验收以及录屏截图和验收报告，不靠"看一眼和模型说:我测完了验收通过"
 
 ## 为什么需要它
-
 你已经在用 Claude Code / Cursor / Codex 写代码了。但你大概率遇到过这些场面：
 
 | 痛点 | 你现在怎么处理 | 用了这套系统之后 |
@@ -51,24 +54,20 @@
 
 ---
 
+## 与其他方案的对比
 
-
-## 核心命令
-
-```bash
-# 初始化：接入你的项目（tg= 填你的 Telegram 账号数字 ID）
-/sdlc-workflow init "tg=123456789 review=1"
-
-# 标准需求：走完整 12 步流程
-/sdlc-workflow doit 增加用户登录模块，支持邮箱和手机号注册
-
-# 小任务：走精简流程，但不跳过 Gate
-/sdlc-workflow mini 把按钮颜色改成蓝色
-```
-
-> **前置条件**：使用 TG 通知前需先配置 OpenClaw CLI（`npm i -g openclaw && openclaw auth login && openclaw channel connect telegram`），获取你的 Telegram 账号数字 ID 或 chat_id。
+| | 裸用 Claude Code | Cursor Rules | SDLC Workflow |
+|--|-----------------|--------------|---------------|
+| 目录结构约束 | ❌ 靠 prompt 祈祷 | ⚠️ 可配规则，无运行时强制 | ✅ 注入 workflow，运行时强制 |
+| 设计审查 | ❌ 无 | ❌ 无 | ✅ Codex CLI Gate 1 |
+| 代码审查 | ❌ 无 | ❌ 无 | ✅ Codex CLI Gate 2 |
+| 测试验收 | ⚠️ 口述"已测试" | ⚠️ 口述"已测试" | ✅ 浏览器交互证据 |
+| 迭代可恢复 | ❌ 依赖聊天记录 | ❌ 依赖聊天记录 | ✅ Git + iteration 目录 |
+| 老项目安全接入 | ❌ 经常被重建 | ⚠️ 看运气 | ✅ intake → baseline → 约束 |
+| 远程运行 | ⚠️ 部分支持 | ❌ 桌面端 | ✅ OpenClaw / TG 原生支持 |
 
 ---
+
 
 ## 安装
 
@@ -146,6 +145,9 @@ openclaw channel info telegram       # 获取你的账号数字 ID
 /sdlc-workflow mini 把按钮颜色改成蓝色
 ```
 
+> **前置条件**：使用 TG 通知前需先配置 OpenClaw CLI（`npm i -g openclaw && openclaw auth login && openclaw channel connect telegram`），获取你的 Telegram 账号数字 ID 或 chat_id。
+
+---
 ## 三种模式
 
 | 命令 | 适用场景 | 步骤数 |
@@ -211,21 +213,6 @@ sdlc-doit-mini/             # /sdlc-doit-mini 入口 Skill
 | `TEST_BOOTSTRAP_POLICY` | `report` | 测试基础设施缺口处理策略 |
 
 ---
-
-## 与其他方案的对比
-
-| | 裸用 Claude Code | Cursor Rules | SDLC Workflow |
-|--|-----------------|--------------|---------------|
-| 目录结构约束 | ❌ 靠 prompt 祈祷 | ⚠️ 可配规则，无运行时强制 | ✅ 注入 workflow，运行时强制 |
-| 设计审查 | ❌ 无 | ❌ 无 | ✅ Codex CLI Gate 1 |
-| 代码审查 | ❌ 无 | ❌ 无 | ✅ Codex CLI Gate 2 |
-| 测试验收 | ⚠️ 口述"已测试" | ⚠️ 口述"已测试" | ✅ 浏览器交互证据 |
-| 迭代可恢复 | ❌ 依赖聊天记录 | ❌ 依赖聊天记录 | ✅ Git + iteration 目录 |
-| 老项目安全接入 | ❌ 经常被重建 | ⚠️ 看运气 | ✅ intake → baseline → 约束 |
-| 远程运行 | ⚠️ 部分支持 | ❌ 桌面端 | ✅ OpenClaw / TG 原生支持 |
-
----
-
 ## FAQ
 
 **Q: 没有 Codex CLI 能用吗？**
