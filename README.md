@@ -1,4 +1,4 @@
-# SDLC Workflow — AI 驱动的 24 小时自动化软件交付流水线
+# 企业级 SDLC Workflow — AI 驱动的 24 小时自动化软件交付流水线
 
 <p align="center">
   <strong>🏭 用 Claude Code 做开发 · 用 Codex CLI 做审查 · 用 Telegram 追进度</strong>
