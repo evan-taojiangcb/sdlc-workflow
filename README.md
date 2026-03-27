@@ -23,7 +23,7 @@
 
 三条线:
 init（初始化）：采集项目信息或初始化项目 → 生成baseline → 锁定结构
-doit（完整流程）：需求 → 澄清 → 设计 → 任务 → Gate1 → 开发 → 测试 → Gate2 → 验收 → 文档 → PR
+doit（完整流程）：需求 → 澄清 → 设计 → 任务 → Gate1 → 开发 → 测试 → Gate2 → 验收 → gate3 -> 写入文档 → PR
 mini（精简流程）：需求 → 精简设计 → MiniGate1 → 实现 → MiniGate2 → 验收 → PR
 ```
 
@@ -123,6 +123,10 @@ ln -sf .claude/sdlc-workflow-repo/sdlc-doit-mini .claude/skills/sdlc-doit-mini
 | [Codex CLI](https://github.com/openai/codex) | Gate 1/2 独立审查 | `npm i -g @openai/codex` |
 | [GitHub CLI](https://cli.github.com/) | PR 创建 | `brew install gh` |
 | [OpenClaw CLI](https://github.com/openclaw) | TG 通知发送 | `npm i -g openclaw` |
+| [chrome devtools mcp](https://github.com/ChromeDevTools/chrome-devtools-mcp) | 浏览器验收 | claude-code 挂载 mcp |
+|[github mcp](https://github.com/github/github-mcp-server) | 自动提交 PR | claude-code 挂载 mcp |
+
+
 
 ### TG 通知配置（可选但推荐）
 
