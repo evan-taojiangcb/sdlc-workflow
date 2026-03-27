@@ -5,7 +5,8 @@
 </p>
 
 <p align="center">
-  <a href="./DESIGN-PROMO.md">📖 设计理念</a> ·
+  <a href="./DESIGN-PROMO.md#设计哲学">💡 设计理念</a> ·
+  <a href="./DESIGN-PROMO.md">📖 完整设计文档</a> ·
   <a href="./examples/30-second-demo.md">⚡ 30 秒上手</a> ·
   <a href="./sdlc-workflow/SKILL.md">🔧 核心规范</a>
 </p>
@@ -28,6 +29,54 @@
 - 📱 **13 个 TG 通知点**：每个关键环节都发 Telegram，人不在终端也能追踪
 - 🛡️ **Existing Project 安全**：自动生成 baseline，防止 AI 乱改你的项目结构
 - 🧪 **证据链验收**：Chrome DevTools MCP + WebMCP 做最终验收，不靠"看一眼"
+
+## 为什么需要它
+
+你已经在用 Claude Code / Cursor / Codex 写代码了。但你大概率遇到过这些场面：
+
+| 痛点 | 你现在怎么处理 | 用了这套系统之后 |
+|------|--------------|----------------|
+| 模型擅自把目录结构改了 | 事后人工修，或者放弃 | 目录约束作为规则注入，改不了 |
+| 说"已完成"但实际没测 | 手动逐个验证 | 最终通过必须有浏览器交互证据 |
+| 老项目交给 AI，被当新项目重建 | 反复解释"别动现有架构" | 先 intake 再开发，baseline 锁定现有结构 |
+| 审查全靠自己看 diff | 通常看不过来就跳过了 | Codex CLI 自动审查，Gate 失败就停 |
+| 做了什么改动，过两天就忘 | 翻 Git log 猜 | 每轮需求生成独立 iteration 目录 |
+| 小改动不想跑全流程 | 直接裸改，没记录 | mini 模式：精简流程，但仍有 Gate 和验收 |
+
+**一句话总结**：这是一套用 **工程 contract** 而非 prompt 技巧来约束 AI 行为的 SDLC 系统。
+
+---
+
+
+
+## 核心命令
+
+```bash
+# 初始化：接入你的项目（tg= 填你的 Telegram 账号数字 ID）
+/sdlc-workflow init "tg=123456789 review=1"
+
+# 标准需求：走完整 12 步流程
+/sdlc-workflow doit 增加用户登录模块，支持邮箱和手机号注册
+
+# 小任务：走精简流程，但不跳过 Gate
+/sdlc-workflow mini 把按钮颜色改成蓝色
+```
+
+> **前置条件**：使用 TG 通知前需先配置 OpenClaw CLI（`npm i -g openclaw && openclaw auth login && openclaw channel connect telegram`），获取你的 Telegram 账号数字 ID 或 chat_id。
+
+---
+
+## 三种模式
+
+| 命令 | 适用场景 | 步骤数 |
+|------|---------|--------|
+| `/sdlc-workflow init` | 项目接入，生成配置和 baseline | 一次性 |
+| `/sdlc-workflow doit` | 正常 feature/fix，完整 SDLC 流程 | 12 步 |
+| `/sdlc-workflow mini` | 微小 UI 调整/文案修改 | 精简（但仍有 Gate） |
+
+**mini 不是"跳过流程"**：浏览器验收不精简，Gate 不跳过。影响 > 3 文件或改 API/数据模型时自动升级到 doit。
+
+---
 
 ## 安装
 
@@ -163,15 +212,53 @@ sdlc-doit-mini/             # /sdlc-doit-mini 入口 Skill
 | `LINT_TOOL` | `eslint` | Lint 工具（eslint/biome） |
 | `TEST_BOOTSTRAP_POLICY` | `report` | 测试基础设施缺口处理策略 |
 
-## 设计理念
+---
 
-详见 [DESIGN-PROMO.md](./DESIGN-PROMO.md)
+## 与其他方案的对比
 
-**核心原则**：
-1. **结构约束先于模型智能** — 把规则注入 workflow，不靠 prompt 口头约束
-2. **双模型把关不可降级** — Codex 挂了就中止，不偷偷跳过
-3. **证据链验收** — Chrome DevTools MCP + WebMCP 做最终验收
-4. **通知不中断** — TG 发送失败只 log，不影响 Pipeline
+| | 裸用 Claude Code | Cursor Rules | SDLC Workflow |
+|--|-----------------|--------------|---------------|
+| 目录结构约束 | ❌ 靠 prompt 祈祷 | ⚠️ 可配规则，无运行时强制 | ✅ 注入 workflow，运行时强制 |
+| 设计审查 | ❌ 无 | ❌ 无 | ✅ Codex CLI Gate 1 |
+| 代码审查 | ❌ 无 | ❌ 无 | ✅ Codex CLI Gate 2 |
+| 测试验收 | ⚠️ 口述"已测试" | ⚠️ 口述"已测试" | ✅ 浏览器交互证据 |
+| 迭代可恢复 | ❌ 依赖聊天记录 | ❌ 依赖聊天记录 | ✅ Git + iteration 目录 |
+| 老项目安全接入 | ❌ 经常被重建 | ⚠️ 看运气 | ✅ intake → baseline → 约束 |
+| 远程运行 | ⚠️ 部分支持 | ❌ 桌面端 | ✅ OpenClaw / TG 原生支持 |
+
+---
+
+## 目录结构
+
+```
+.claude-plugin/marketplace.json    ← 一键安装配置
+sdlc-workflow/                     ← 核心 Skill
+├── SKILL.md                       #   主流程规范
+├── references/                    #   15 个步骤详细规范
+├── scripts/                       #   初始化脚本
+└── templates/                     #   项目模板文件
+sdlc-init/                         ← /sdlc-init 入口
+sdlc-doit/                         ← /sdlc-doit 入口
+sdlc-doit-mini/                    ← /sdlc-doit-mini 入口
+```
+
+---
+
+## FAQ
+
+**Q: 没有 Codex CLI 能用吗？**
+> 当前设计下不行。Gate 是强制的。可以 fork 后修改 Gate 步骤为人工审查。
+
+**Q: 支持 TypeScript 以外的项目吗？**
+> 支持。配置 `TEST_FRAMEWORK` 和 `LINT_TOOL` 即可适配。流程本身不依赖特定语言。
+
+**Q: mini 和 doit 怎么选？**
+> 改 CSS、改文案、小 UI 修 → mini。改 API、改数据模型、涉及多模块 → doit。mini 过程中发现影响范围大会自动升级。
+
+**Q: 会话中断了怎么办？**
+> 下一个 session 读取 `docs/iterations/` 和 Git 状态即可续跑。所有中间产物都已持久化在文件系统里。
+
+---
 
 ## License
 

@@ -41,7 +41,9 @@ Lint → Unit → Playwright → Chrome DevTools MCP   ← 有验收
 更新文档 → Git commit → 创建 PR                  ← 有交付
   ↓
 TG/Telegram 通知你结果                           ← 有通知
+
 ```
+
 
 ## 核心命令
 
@@ -132,56 +134,86 @@ docs/iterations/
 
 ## 完整流程图
 
+
 ```mermaid
 flowchart TD
-    A["/sdlc-workflow &lt;mode&gt; &lt;input&gt;"] --> B{"识别模式"}
+    START([🚀 /sdlc-workflow]) --> MODE{选择模式}
+    MODE -->|init| DETECT{项目类型}
+    MODE -->|doit| REQ_FULL[① 需求采集]
+    MODE -->|mini| REQ_MINI[① 需求采集<br/>精简版]
 
-    B -->|init| C["检测 fresh / existing project"]
-    C --> D["生成 workflow 配置 + baseline"]
-    D --> E["📱 TG: 🚀 初始化完成"]
+    DETECT -->|fresh| INIT[初始化项目结构<br/>生成配置 + 模板]
+    DETECT -->|existing| INTAKE[Baseline Intake<br/>PROJECT_BASELINE<br/>EXISTING_STRUCTURE<br/>TEST_BASELINE]
+    INTAKE --> INIT
+    INIT --> TG0[📱 项目初始化完成]
 
-    B -->|doit| F["初始化检查"]
-    F --> G["① 需求采集"]
-    G --> G1["📱 TG: 📥 需求已收录"]
-    G1 --> H["② 需求澄清（标注置信度）"]
-    H -.->|低置信度| H1["📱 TG: ❓ 需确认"]
-    H --> I["③ 设计生成（引用 baseline）"]
-    I --> I1["📱 TG: 🎨 设计文档已生成"]
-    I1 --> J["④ 任务分解"]
-    J --> J1["📱 TG: 📋 任务分解完成"]
-    J1 --> K["⑤ Gate 1 · Codex 审查设计"]
-    K --> K1["📱 TG: 🔍 设计 Review 结果"]
-    K1 --> L["⑥ Claude Code 实现"]
-    L --> L1["📱 TG: 🔨 开始/完成实现"]
-    L1 --> M["⑦ 生成测试"]
-    M --> M1["📱 TG: 🧪 测试用例已生成"]
-    M1 --> N["⑧ Gate 2 · Codex 审查代码"]
-    N --> N1["📱 TG: 🔍 Code Review 结果"]
-    N1 --> O["⑨ Lint → Unit → Playwright → Browser MCP"]
-    O --> O1["📱 TG: 🧪 测试结果"]
-    O1 --> P["⑩ 更新文档"]
-    P --> P1["📱 TG: 📝 文档已更新"]
-    P1 --> Q["⑪ Git branch → commit → PR"]
-    Q --> R["📱 TG: ✅ 迭代完成 + PR 链接"]
+    %% ===== doit 完整流程 =====
+    REQ_FULL --> CLARIFY[② 需求澄清]
+    CLARIFY --> DESIGN[③ 设计生成]
+    DESIGN --> TASKS[④ 任务分解]
+    TASKS --> GATE1{⑤ Gate 1<br/>Codex 审查设计}
+    GATE1 -->|PASS ✅| DEV[⑥ Claude Code 开发]
+    GATE1 -->|FAIL ❌| G1_CHK{轮数 ≤ N?}
+    G1_CHK -->|是| DESIGN
+    G1_CHK -->|否| ABORT1([🛑 中止 · 通知人工介入])
 
-    B -->|mini| S["初始化检查"]
-    S --> T["精简 requirements / design / tasks"]
-    T --> T1["📱 TG: 📥 mini 需求已收录"]
-    T1 --> U["mini Gate 1"]
-    U --> U1["📱 TG: 🔍 mini Gate 1 结果"]
-    U1 --> V["最小实现"]
-    V --> V1["📱 TG: 🔨 mini 开始实现"]
-    V1 --> W["验证能力检测 + mini Gate 2"]
-    W --> W1["📱 TG: 🔍 mini Gate 2 结果"]
-    W1 --> X["Chrome DevTools MCP + WebMCP 验收"]
-    X --> X1["📱 TG: 🧪 mini 验收结果"]
-    X1 --> Y["mini report → git commit"]
-    Y --> Y1["📱 TG: ✅ mini 迭代完成"]
+    DEV --> TESTGEN[⑦ 测试生成]
+    TESTGEN --> GATE2{⑧ Gate 2<br/>Codex 审查代码}
+    GATE2 -->|PASS ✅| TEST[⑨ 测试执行<br/>Lint → Unit → Playwright<br/>→ Chrome DevTools MCP<br/>→ WebMCP]
+    GATE2 -->|FAIL ❌| G2_CHK{轮数 ≤ N?}
+    G2_CHK -->|是| DEV
+    G2_CHK -->|否| ABORT2([🛑 中止 · 通知人工介入])
 
-    style K fill:#ff6b6b,color:#fff
-    style N fill:#ff6b6b,color:#fff
-    style U fill:#ffa502,color:#fff
-    style W fill:#ffa502,color:#fff
+    TEST --> T_RESULT{测试通过?}
+    T_RESULT -->|PASS ✅| DOCS[⑩ 文档更新]
+    T_RESULT -->|FAIL ❌| T_CHK{轮数 ≤ N?}
+    T_CHK -->|是| DEV
+    T_CHK -->|否| ABORT3([🛑 中止 · 通知人工介入])
+
+    DOCS --> GIT[⑪ Git commit + PR]
+    GIT --> TG_DONE[📱 ✅ PR 已创建 · 通知结果]
+    TG_DONE --> DONE([🎉 完成])
+
+    %% ===== mini 精简流程 =====
+    REQ_MINI --> DESIGN_M[③ 精简设计]
+    DESIGN_M --> TASKS_M[④ 精简任务]
+    TASKS_M --> MG1{Mini Gate 1<br/>Codex 审查}
+    MG1 -->|PASS ✅| DEV_M[⑥ 实现代码]
+    MG1 -->|FAIL ❌| MG1_CHK{轮数 ≤ N?}
+    MG1_CHK -->|是| DESIGN_M
+    MG1_CHK -->|否| ABORT_M1([🛑 中止])
+
+    DEV_M --> MG2{Mini Gate 2<br/>Codex 审查}
+    MG2 -->|PASS ✅| TEST_M[验收测试<br/>Chrome DevTools MCP + WebMCP]
+    MG2 -->|FAIL ❌| MG2_CHK{轮数 ≤ N?}
+    MG2_CHK -->|是| DEV_M
+    MG2_CHK -->|否| ABORT_M2([🛑 中止])
+
+    TEST_M --> TM_RESULT{测试通过?}
+    TM_RESULT -->|PASS ✅| GIT_M[Git commit + PR]
+    TM_RESULT -->|FAIL ❌| TM_CHK{轮数 ≤ N?}
+    TM_CHK -->|是| DEV_M
+    TM_CHK -->|否| ABORT_M3([🛑 中止])
+    GIT_M --> TG_DONE
+
+    DEV_M --> UPGRADE{影响 > 3 文件<br/>或改 API?}
+    UPGRADE -->|是| REQ_FULL
+
+    style GATE1 fill:#f59e0b,color:#000
+    style GATE2 fill:#f59e0b,color:#000
+    style MG1 fill:#f59e0b,color:#000
+    style MG2 fill:#f59e0b,color:#000
+    style T_RESULT fill:#f59e0b,color:#000
+    style TM_RESULT fill:#f59e0b,color:#000
+    style ABORT1 fill:#ef4444,color:#fff
+    style ABORT2 fill:#ef4444,color:#fff
+    style ABORT3 fill:#ef4444,color:#fff
+    style ABORT_M1 fill:#ef4444,color:#fff
+    style ABORT_M2 fill:#ef4444,color:#fff
+    style ABORT_M3 fill:#ef4444,color:#fff
+    style DONE fill:#10b981,color:#fff
+    style START fill:#6366f1,color:#fff
+    style UPGRADE fill:#8b5cf6,color:#fff
 ```
 
 ---
