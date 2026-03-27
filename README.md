@@ -6,7 +6,6 @@
 
 <p align="center">
   <a href="./DESIGN-PROMO.md#设计哲学">💡 设计理念</a> ·
-  <a href="./DESIGN-PROMO.md">📖 完整设计文档</a> ·
   <a href="./examples/30-second-demo.md">⚡ 30 秒上手</a> ·
   <a href="./sdlc-workflow/SKILL.md">🔧 核心规范</a>
 </p>

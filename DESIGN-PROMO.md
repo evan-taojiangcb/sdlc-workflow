@@ -1,4 +1,4 @@
-# 完整设计 SDLC Workflow Suite
+# 设计理念 SDLC Workflow Suite
 
 > **让 AI 按工程规矩干活，而不是自由发挥。**
 >
