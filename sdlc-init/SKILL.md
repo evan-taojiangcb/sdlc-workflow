@@ -5,7 +5,7 @@ description: >-
   existing projects, bootstraps workflow files, runs baseline intake for
   existing codebases, and writes minimal workflow config such as TG username
   and review rounds.
-argument-hint: '可选: "tg=@evan review=1 branch=feat/"'
+argument-hint: '可选: "tg=@evan review=1 branch=feat/ test-bootstrap=report"'
 homepage: https://github.com/<org>/sdlc-workflow
 ---
 
@@ -27,11 +27,15 @@ homepage: https://github.com/<org>/sdlc-workflow
 - `tg=@username`
 - `review=1`
 - `branch=feat/`
+- `test-bootstrap=report|auto|never`
 
 若 prompt 未给出：
 
 - `TG_USERNAME` 优先尝试从运行时上下文获取
 - `REVIEW_MAX_ROUNDS` 默认写为 `1`
+- `TEST_BOOTSTRAP_POLICY` 默认：
+  - existing project → `report`
+  - fresh project → `auto`
 
 ## 执行步骤
 
@@ -45,10 +49,10 @@ homepage: https://github.com/<org>/sdlc-workflow
 bash ../sdlc-workflow/scripts/init-project.sh .
 ```
 
-4. 若 prompt 中带有 `tg` / `review` / `branch`，运行：
+4. 若 prompt 中带有 `tg` / `review` / `branch` / `test-bootstrap`，运行：
 
 ```bash
-bash ../sdlc-workflow/scripts/update-workflow-config.sh --project-root . --tg <username> --review-rounds <n> --branch-prefix <prefix>
+bash ../sdlc-workflow/scripts/update-workflow-config.sh --project-root . --tg <username> --review-rounds <n> --branch-prefix <prefix> --test-bootstrap-policy <policy>
 ```
 
 5. 若为 existing project，严格按照 `../sdlc-workflow/references/existing-project-intake.md` 生成：
@@ -75,4 +79,5 @@ bash ../sdlc-workflow/scripts/update-workflow-config.sh --project-root . --tg <u
 2. 初始化生成了哪些文件
 3. 是否已写入 `TG_USERNAME`
 4. `REVIEW_MAX_ROUNDS` 当前值
-5. 后续建议使用 `/sdlc-doit` 还是 `/sdlc-doit-mini`
+5. `TEST_BOOTSTRAP_POLICY` 当前值
+6. 后续建议使用 `/sdlc-doit` 还是 `/sdlc-doit-mini`

@@ -5,6 +5,7 @@ PROJECT_ROOT="."
 TG_USERNAME_VALUE=""
 REVIEW_MAX_ROUNDS_VALUE=""
 GIT_BRANCH_PREFIX_VALUE=""
+TEST_BOOTSTRAP_POLICY_VALUE=""
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -22,6 +23,10 @@ while [ $# -gt 0 ]; do
       ;;
     --branch-prefix)
       GIT_BRANCH_PREFIX_VALUE="$2"
+      shift 2
+      ;;
+    --test-bootstrap-policy)
+      TEST_BOOTSTRAP_POLICY_VALUE="$2"
       shift 2
       ;;
     *)
@@ -82,6 +87,10 @@ fi
 
 if [ -n "$GIT_BRANCH_PREFIX_VALUE" ]; then
   sync_env_var "$ENV_FILE" "GIT_BRANCH_PREFIX" "$GIT_BRANCH_PREFIX_VALUE"
+fi
+
+if [ -n "$TEST_BOOTSTRAP_POLICY_VALUE" ]; then
+  sync_env_var "$ENV_FILE" "TEST_BOOTSTRAP_POLICY" "$TEST_BOOTSTRAP_POLICY_VALUE"
 fi
 
 echo "Updated workflow config in $ENV_FILE"

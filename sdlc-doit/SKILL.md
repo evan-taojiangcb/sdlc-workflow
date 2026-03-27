@@ -35,7 +35,10 @@ homepage: https://github.com/<org>/sdlc-workflow
    - test pipeline
    - docs update
    - git commit
-4. 最终通过依据仍为：
+4. 进入测试前必须先做 validation capability detection，确认项目现有 lint/unit/Playwright/browser 验收能力
+5. `TEST_BOOTSTRAP_POLICY` 决定缺少测试基础设施时的行为；existing project 默认推荐 `report`
+6. OpenClaw / 远程场景不要依赖交互式 ask，优先输出报告和 TG 通知
+7. 最终通过依据仍为：
    - Chrome DevTools MCP
    - WebMCP
 

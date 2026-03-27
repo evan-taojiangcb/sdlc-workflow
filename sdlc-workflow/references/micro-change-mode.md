@@ -73,6 +73,52 @@ mini 模式下：
 
 Playwright 仍只作为预检，不是最终通过依据。
 
+## 验证能力检测
+
+进入 mini 流程后，不能直接跳过测试决策，必须先检测当前项目具备哪些验证能力：
+
+1. lint 命令是否存在
+2. unit test 命令或框架是否存在
+3. Playwright 预检是否可运行
+4. Chrome DevTools MCP 是否可用
+5. WebMCP 是否可用
+
+检测结果必须在 mini 报告中归类为：
+
+- `Passed`
+- `Not Available`
+- `Not Applicable`
+- `Blocked`
+
+## 测试基础设施补齐策略
+
+通过 `TEST_BOOTSTRAP_POLICY` 决定检测到缺口后的行为：
+
+1. `report`
+   - 不进行交互式追问
+   - 不自动安装依赖
+   - 在报告和 TG 通知中列出缺口与建议命令
+   - 对 OpenClaw / 远程场景最稳妥
+2. `auto`
+   - 在明确允许的场景下自动补齐测试基础设施
+   - 更适合 fresh project
+   - existing project 仅在用户显式允许时使用
+3. `never`
+   - 检测到关键缺口后直接中止
+
+对于 existing project，默认推荐 `report`；不要因为一个小任务而静默安装 Vitest、Playwright、ESLint 等依赖。
+
+## OpenClaw / 远程场景
+
+远程场景下不应依赖多轮 ask/response。若缺少验证能力：
+
+1. 优先走 `report` 策略
+2. 用 TG/报告一次性输出：
+   - 缺少什么
+   - 哪一步被阻塞
+   - 推荐执行的命令
+3. 不要把“没有 ask 到用户”当作跳过测试的理由
+
 ## 升级规则
 
 若执行过程中发现以下任一情况，必须立即升级到标准 `/sdlc-doit`：

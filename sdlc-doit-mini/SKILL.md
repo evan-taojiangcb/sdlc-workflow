@@ -29,8 +29,11 @@ homepage: https://github.com/<org>/sdlc-workflow
    - `tasks.md`
 4. `design.md` 必须明确声明：`无架构变更`
 5. `tasks.md` 完成后必须回写勾选状态
-6. Playwright 只作为预检
-7. 最终通过依据必须是：
+6. 进入验证前必须先做 validation capability detection，确认 lint / unit / Playwright / Chrome DevTools MCP / WebMCP 的可用性
+7. `TEST_BOOTSTRAP_POLICY` 决定缺少测试基础设施时的行为；existing project 默认推荐 `report`
+8. OpenClaw / 远程场景不要依赖交互式 ask，优先输出报告和 TG 通知
+9. Playwright 只作为预检
+10. 最终通过依据必须是：
    - Chrome DevTools MCP
    - WebMCP
 

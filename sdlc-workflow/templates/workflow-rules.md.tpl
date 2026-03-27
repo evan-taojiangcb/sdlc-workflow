@@ -38,5 +38,8 @@
 - 单元测试必须写入 `tests/unit/`，并按 workspace 镜像落位，如 `tests/unit/web/...`、`tests/unit/server/...`、`tests/unit/packages/...`
 - E2E 测试必须写入 `tests/e2e/`，并维护“需求 ID / 场景 ID / 文件路径”的唯一映射，不得重复覆盖同一需求路径
 - `tasks.md` 是执行状态单据：任务实现完成后，必须将任务标题从 `[ ]` 回写为 `[x]`，并同步勾选真实完成的验收标准
+- 进入 `/sdlc-doit` 或 `/sdlc-doit-mini` 的测试阶段前，必须先检测项目当前具备的验证能力，不能静默跳过测试决策
+- `TEST_BOOTSTRAP_POLICY` 决定缺少测试基础设施时的行为；existing project 默认推荐 `report`
+- OpenClaw / 远程场景默认不依赖交互式 ask，优先通过报告和 TG 通知输出缺口与后续动作
 - 测试链路为 `Playwright 预检 + Chrome DevTools MCP + WebMCP 最终交互验收`
 - 最终交互测试与最终测试报告以 Chrome DevTools MCP 和 WebMCP 产物为准

@@ -49,6 +49,16 @@ PARALLEL_TESTS=false
 # - biome:  npx biome check . (Rust 实现，速度快，lint+format 二合一)
 LINT_TOOL=eslint
 
+# [可选] 测试基础设施补齐策略
+# 枚举值: report | auto | never
+# 默认值: report
+# 说明:
+# - report: 检测到缺少 lint/unit/playwright/browser 验收能力时，不交互追问，直接在报告/TG 中列出缺口与建议命令
+# - auto:   在允许的场景下自动补齐缺少的测试基础设施（更适合 fresh project）
+# - never:  检测到缺口后直接中止，不尝试补齐
+# 远程/OpenClaw 场景建议 existing project 使用 report，避免交互式 ask 卡住流程
+TEST_BOOTSTRAP_POLICY=report
+
 # ──────────────────────────────────────────────────────────────
 # 审查配置
 # ──────────────────────────────────────────────────────────────
