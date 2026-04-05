@@ -137,7 +137,7 @@ Pipeline 启动时按以下优先级确定 TG_USERNAME：
 | ⑥ | Claude Code 开发 | 按 tasks.md 逐任务实现代码 |
 | ⑦ | test-generator | 生成 tests/unit/ + tests/e2e/ |
 | ⑧ | code-reviewer | **Gate 2**: Codex CLI 审查代码 |
-| ⑨ | test-pipeline | lint → unit → Playwright 预检 → Playwright MCP / WebMCP 最终交互测试 |
+| ⑨ | test-pipeline | lint → unit → Playwright 预检 → Playwright MCP 功能验收（不可跳过）→ WebMCP 复核 → 生成 HTML 验收报告 |
 | ⑩ | docs-updater | 更新文档 + CLAUDE.md iterations 引用 |
 | ⑪ | git-committer | branch → commit → push → PR |
 
@@ -295,9 +295,16 @@ Gate 2 还必须检查 `tasks.md` 状态是否与真实实现一致：
 ```
 STAGE 1: npx $LINT_TOOL .        # 快速失败
 STAGE 2: npx $TEST_FRAMEWORK     # unit tests
-STAGE 3: npx playwright test # Playwright tests
-STAGE 4: Playwright MCP validation
-STAGE 5: WebMCP validation
+STAGE 3: npx playwright test     # Playwright 预检
+STAGE 4: Playwright MCP 功能验收（⚠️ 不可跳过）
+  → 必须真正调用 Playwright MCP 工具:
+    browser_navigate → browser_snapshot → browser_click/type
+    → browser_console_messages → browser_screenshot
+  → 产出: tests/reports/playwright/<slug>-<scenario>.md + 截图
+STAGE 5: WebMCP 交互复核
+  → 产出: tests/reports/webmcp/<slug>-<scenario>.md
+STAGE 6: 生成最终验收报告（HTML 图表）
+  → 产出: tests/reports/<slug>-acceptance-report.html
 
 IF any failure:
   IF round < REVIEW_MAX_ROUNDS:
