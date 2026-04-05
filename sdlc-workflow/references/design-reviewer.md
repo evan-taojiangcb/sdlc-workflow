@@ -228,6 +228,32 @@ done
 💡 修复后可从步骤③手动恢复
 ```
 
+## Gate 1 通过后：增量文档同步（⑤.1）
+
+若 Gate 1 经过 ≥1 轮修订才通过（即 design.md 或 tasks.md 被 Claude 修订过），在进入 ⑥ 开发之前，必须同步更新受影响的基线文档：
+
+### 触发条件
+
+```
+round > 1（即 Gate 1 不是首轮直接通过）
+```
+
+### 同步范围
+
+| 修订内容 | 同步目标 |
+|----------|----------|
+| 技术选型/架构决策变更 | `docs/ARCHITECTURE.md` 对应章节 |
+| 安全设计变更（认证/授权/加密方案） | `docs/SECURITY.md` 对应章节 |
+| 目录结构/模块落位调整 | `docs/EXISTING_STRUCTURE.md`（existing project） |
+| 新增编码约定 | `docs/CODING_GUIDELINES.md` |
+
+### 行为规则
+
+1. **只更新被修订影响的章节**，不做全量重写
+2. 以 design.md 修订前后的 diff 为依据，不凭猜测
+3. 同步完成后 LOG `"📄 Gate 1 修订已同步到基线文档"`
+4. 同步失败不阻塞 Pipeline（LOG warning，继续进入 ⑥）
+
 ## 相关文件
 
 - 输入：
@@ -235,7 +261,8 @@ done
   - tasks.md
   - docs/ARCHITECTURE.md
   - docs/SECURITY.md
-- 输出：审查结果（PASS/FAIL）
+- 输出：审查结果（PASS/FAIL）+ 增量文档同步
 - 参考：
   - SKILL.md Part 4（下一步：步骤⑥ Claude Code 开发）
   - references/code-reviewer.md（Gate 2）
+  - references/docs-updater.md（最终文档更新）

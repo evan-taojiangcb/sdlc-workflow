@@ -226,6 +226,28 @@ WHILE round <= REVIEW_MAX_ROUNDS:
   round+=1
 ```
 
+#### ⑤.1 Gate 1 后增量文档同步
+
+Gate 1 通过后，若经过 ≥1 轮修订，必须同步更新受影响的文档：
+
+```
+IF Gate 1 审查经过修订（round > 1）:
+  DIFF = diff(requirements.md + design.md + tasks.md 原始版本, 当前版本)
+  IF DIFF 涉及需求范围变更:
+    同步更新 requirements.md 中的 [⚠️ 假设] 标注
+  IF DIFF 涉及架构决策变更:
+    同步更新 docs/ARCHITECTURE.md 对应章节
+  IF DIFF 涉及安全设计变更:
+    同步更新 docs/SECURITY.md 对应章节
+  IF DIFF 涉及目录结构调整:
+    同步更新 docs/EXISTING_STRUCTURE.md（existing project）
+  IF DIFF 涉及任务拆分/验收标准变更:
+    确认 tasks.md 与修订后的 design.md 一致
+  LOG "📄 Gate 1 修订已同步到基线文档"
+```
+
+**原则**：只更新被修订影响的章节，不做全量重写。确保 ⑥ 开发阶段读取到的 ARCHITECTURE.md 与 design.md 决策一致。
+
 #### ⑥ Claude Code 开发
 - 通知 TG: 🔨 开始实现: <需求摘要前50字>
 
@@ -281,6 +303,12 @@ IF any failure:
   IF round < REVIEW_MAX_ROUNDS:
     通知 TG: 🧪 失败用例: <列表>
     CLAUDE 修复
+
+    # ⑨.1 测试修复后增量文档同步
+    IF 修复过程中修改了 design.md 或 tasks.md:
+      同步 ARCHITECTURE.md / SECURITY.md 受影响章节
+      LOG "📄 测试修复引起的设计/任务变更已同步到基线文档"
+
     retry
   ELSE:
     通知 TG: ⚠️ 测试修复超过 {N} 轮
@@ -288,6 +316,8 @@ IF any failure:
 
 通知 TG: 🧪 测试结果: <通过数>/<总数>
 ```
+
+> **规则**：测试修复阶段如果涉及 design.md（技术方案调整）或 tasks.md（任务范围变更），必须在 retry 前同步更新 ARCHITECTURE.md / SECURITY.md / EXISTING_STRUCTURE.md 中受影响的章节，防止文档与实际实现脱节。
 
 #### ⑩ docs-updater
 按变更更新：

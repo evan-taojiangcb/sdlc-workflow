@@ -36,8 +36,10 @@ graph TD
     S4 --> S5["⑤ design-reviewer · Gate 1<br/>Codex CLI 审查设计"]
     S5 --> TG3["📱 TG: 设计 Review 结果"]
     TG3 -->|FAIL & round ≤ N| S3
-    TG3 -->|PASS| S6["⑥ Claude Code 按 tasks.md 开发"]
+    TG3 -->|PASS 经修订| S5_1["⑤.1 增量文档同步<br/>ARCHITECTURE / SECURITY / EXISTING_STRUCTURE"]
+    TG3 -->|PASS 首轮通过| S6["⑥ Claude Code 按 tasks.md 开发"]
     TG3 -->|"FAIL & round > N"| ESCALATE["📱 TG: ⚠️ 需人工介入 → 中止"]
+    S5_1 --> S6
 
     S6 --> S7["⑦ test-generator<br/>→ tests/unit/ + tests/e2e/"]
     S7 --> S8["⑧ code-reviewer · Gate 2<br/>Codex CLI 审查代码"]
@@ -47,7 +49,9 @@ graph TD
     TG4 -->|"FAIL & round > N"| ESCALATE
 
     S9 --> TG5["📱 TG: 测试报告"]
-    TG5 -->|失败 & round ≤ N| S6
+    TG5 -->|失败 & round ≤ N| S9_1{"修复涉及<br/>design/tasks 变更?"}
+    S9_1 -->|是| S9_SYNC["⑨.1 增量文档同步<br/>ARCHITECTURE / SECURITY"] --> S6
+    S9_1 -->|否| S6
     TG5 -->|全部通过| S10["⑩ docs-updater<br/>更新文档"]
     TG5 -->|"失败 & round > N"| ESCALATE
 
@@ -65,10 +69,12 @@ graph TD
 | ③ | design-generator | Generator | requirements.md + ARCHITECTURE.md + SECURITY.md + 历史 | design.md | Claude Code |
 | ④ | task-generator | Generator | design.md | tasks.md | Claude Code |
 | ⑤ | design-reviewer | Evaluator-Optimizer | design.md + tasks.md + ARCHITECTURE.md + SECURITY.md | PASS/FAIL | Codex CLI |
+| ⑤.1 | 增量文档同步 | Tool Wrapper | design.md 修订 diff | 更新后的 ARCHITECTURE/SECURITY/EXISTING_STRUCTURE | Claude Code |
 | ⑥ | Claude Code 开发 | — | tasks.md | 代码变更 | Claude Code |
 | ⑦ | test-generator | Generator | tasks.md + git diff | tests/unit/ + tests/e2e/ | Claude Code |
 | ⑧ | code-reviewer | Evaluator-Optimizer | git diff + CODING_GUIDELINES.md + SECURITY.md | PASS/FAIL | Codex CLI |
 | ⑨ | test-pipeline | Pipeline | tests/ | tests/reports/ | Lint + Playwright 预检 + Chrome DevTools MCP + WebMCP 最终验收 |
+| ⑨.1 | 测试修复文档同步 | Tool Wrapper | design.md/tasks.md 修复 diff | 更新后的 ARCHITECTURE/SECURITY | Claude Code |
 | ⑩ | docs-updater | Tool Wrapper | 代码变更 + 迭代产物 | 更新后的文档 | Claude Code |
 | ⑪ | git-committer | Tool Wrapper | 所有变更 | PR URL | Git + GitHub CLI |
 | ⑫ | 最终通知 | — | PR URL + 变更摘要 | TG 消息 | OpenClaw CLI |
