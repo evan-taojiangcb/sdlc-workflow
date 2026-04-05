@@ -36,7 +36,7 @@ mini（精简流程）：需求 → 精简设计 → MiniGate1 → 实现 → Mi
 - 🔒 **双模型把关**：Claude Code 生成代码，Codex CLI 独立审查（不降级、不跳过）
 - 📱 **13 个 TG 通知点**：每个关键环节都发 Telegram，人不在电脑前也能追踪
 - 🛡️ **Existing Project 安全**：自动采集项目信息生成 baseline，防止 AI 乱改你的项目结构
-- 🧪 **证据链验收**：Chrome DevTools MCP + WebMCP 做最终验收以及录屏截图和验收报告，不靠"看一眼和模型说:我测完了验收通过"
+- 🧪 **证据链验收**：Playwright MCP + WebMCP 做最终验收以及录屏截图和验收报告，不靠"看一眼和模型说:我测完了验收通过"
 
 ## 为什么需要它
 你已经在用 Claude Code / Cursor / Codex 写代码了。但你大概率遇到过这些场面：

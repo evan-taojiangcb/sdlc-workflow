@@ -50,7 +50,7 @@ metadata:
   - mini Gate 1
   - validation capability detection
   - mini Gate 2
-  - Chrome DevTools MCP + WebMCP 最终验收
+  - Playwright MCP + WebMCP 最终验收
 
 ## 项目初始化
 
@@ -137,7 +137,7 @@ Pipeline 启动时按以下优先级确定 TG_USERNAME：
 | ⑥ | Claude Code 开发 | 按 tasks.md 逐任务实现代码 |
 | ⑦ | test-generator | 生成 tests/unit/ + tests/e2e/ |
 | ⑧ | code-reviewer | **Gate 2**: Codex CLI 审查代码 |
-| ⑨ | test-pipeline | lint → unit → Playwright 预检 → Chrome DevTools MCP / WebMCP 最终交互测试 |
+| ⑨ | test-pipeline | lint → unit → Playwright 预检 → Playwright MCP / WebMCP 最终交互测试 |
 | ⑩ | docs-updater | 更新文档 + CLAUDE.md iterations 引用 |
 | ⑪ | git-committer | branch → commit → push → PR |
 
@@ -184,7 +184,7 @@ MKDIR -p "$ITER_DIR"
 ```
 
 #### ① requirements-ingestion
-- 输入类型路由：文本 → 直接解析；file:// → 读取文件；URL → Chrome DevTools MCP
+- 输入类型路由：文本 → 直接解析；file:// → 读取文件；URL → Playwright MCP
 - 输出：docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/requirements.md
 - 通知 TG：📥 需求已收录
 
@@ -296,7 +296,7 @@ Gate 2 还必须检查 `tasks.md` 状态是否与真实实现一致：
 STAGE 1: npx $LINT_TOOL .        # 快速失败
 STAGE 2: npx $TEST_FRAMEWORK     # unit tests
 STAGE 3: npx playwright test # Playwright tests
-STAGE 4: Chrome DevTools MCP validation
+STAGE 4: Playwright MCP validation
 STAGE 5: WebMCP validation
 
 IF any failure:
@@ -387,7 +387,7 @@ openclaw message send --channel telegram --target "$TG_USERNAME" --message "$MSG
 9. **渐进式加载**：SKILL.md ≤500 行，详细规范按需从 references/ 加载
 10. **模板不覆盖**：init-project.sh 不覆盖已存在的文件
 11. **统一测试目录**：单元测试只能写入 `tests/unit/web|server|packages`，E2E 只能写入 `tests/e2e/`，报告写入 `tests/reports/`
-12. **E2E 证据要求**：关键用户路径的最终报告必须以 Chrome DevTools MCP 和 WebMCP 的交互验证结果为准；Playwright 仅作为预检
+12. **E2E 证据要求**：关键用户路径的最终报告必须以 Playwright MCP 和 WebMCP 的交互验证结果为准；Playwright 仅作为预检
 13. **需求到测试唯一映射**：requirements、tasks、E2E 场景必须有唯一 ID 映射，禁止重复覆盖同一需求路径
 14. **迭代可追溯**：docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/
 15. **审查门禁不可降级**：Codex CLI 不可用时必须中止，不能自动跳过 Gate

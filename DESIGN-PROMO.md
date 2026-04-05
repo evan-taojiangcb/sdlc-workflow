@@ -36,7 +36,7 @@ Claude Code 按 tasks 逐条实现                    ← 有约束
   ↓
 自动生成测试 → Codex CLI 审查代码（Gate 2）       ← 有门禁
   ↓
-Lint → Unit → Playwright → Chrome DevTools MCP   ← 有验收
+Lint → Unit → Playwright → Playwright MCP   ← 有验收
   ↓
 更新文档 → Git commit → 创建 PR                  ← 有交付
   ↓
@@ -109,7 +109,7 @@ Codex CLI   → 独立审查（Gate 1 审设计，Gate 2 审代码）
 | **Verified** | 经过验证的事实 | 真实文件、命令输出、测试报告、浏览器截图 |
 | **Claimed** | 仅被声称而未验证 | handoff 叙述、模型归纳、口头说明 |
 
-**最终通过标准**：Chrome DevTools MCP + WebMCP 的浏览器交互证据，而非模型自述。
+**最终通过标准**：Playwright MCP + WebMCP 的浏览器交互证据，而非模型自述。
 
 ### 5. 可恢复，不怕中断
 
@@ -159,7 +159,7 @@ flowchart TD
 
     DEV --> TESTGEN[⑦ 测试生成]
     TESTGEN --> GATE2{⑧ Gate 2<br/>Codex 审查代码}
-    GATE2 -->|PASS ✅| TEST[⑨ 测试执行<br/>Lint → Unit → Playwright<br/>→ Chrome DevTools MCP<br/>→ WebMCP]
+    GATE2 -->|PASS ✅| TEST[⑨ 测试执行<br/>Lint → Unit → Playwright<br/>→ Playwright MCP<br/>→ WebMCP]
     GATE2 -->|FAIL ❌| G2_CHK{轮数 ≤ N?}
     G2_CHK -->|是| DEV
     G2_CHK -->|否| ABORT2([🛑 中止 · 通知人工介入])
@@ -184,7 +184,7 @@ flowchart TD
     MG1_CHK -->|否| ABORT_M1([🛑 中止])
 
     DEV_M --> MG2{Mini Gate 2<br/>Codex 审查}
-    MG2 -->|PASS ✅| TEST_M[验收测试<br/>Chrome DevTools MCP + WebMCP]
+    MG2 -->|PASS ✅| TEST_M[验收测试<br/>Playwright MCP + WebMCP]
     MG2 -->|FAIL ❌| MG2_CHK{轮数 ≤ N?}
     MG2_CHK -->|是| DEV_M
     MG2_CHK -->|否| ABORT_M2([🛑 中止])
@@ -260,7 +260,7 @@ mini 模式的设计是**轻量但有底线**：
 | Gate 1 设计审查 | Codex 完整审查 | Codex mini 审查 |
 | 测试生成 | Unit + E2E | 按能力检测决定 |
 | Gate 2 代码审查 | Codex 完整审查 | Codex mini 审查 |
-| 浏览器验收 | Chrome DevTools MCP + WebMCP | 同左，**不精简** |
+| 浏览器验收 | Playwright MCP + WebMCP | 同左，**不精简** |
 | 文档更新 | 完整更新 | mini report |
 
 **核心原则**：浏览器验收不能精简，因为它是最终通过标准。
@@ -396,12 +396,12 @@ Stage 2   npx jest / vitest               单元测试
   ↓
 Stage 3   npx playwright test             E2E 预检
   ↓
-Stage 4   Chrome DevTools MCP             浏览器交互验证
+Stage 4   Playwright MCP             浏览器交互验证
   ↓
 Stage 5   WebMCP                          最终交互验收 ← 这才是通过标准
 ```
 
-> **关键**：Playwright 只是预检（preflight），不是最终通过依据。最终通过必须有 Chrome DevTools MCP + WebMCP 的真实浏览器交互证据。
+> **关键**：Playwright 只是预检（preflight），不是最终通过依据。最终通过必须有 Playwright MCP + WebMCP 的真实浏览器交互证据。
 
 ---
 

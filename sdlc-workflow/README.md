@@ -44,7 +44,7 @@
 | Codex CLI | 双模型审查 (Gate 1 + Gate 2) | `npm i -g @openai/codex` |
 | GitHub CLI (gh) | PR 创建 | `brew install gh` → `gh auth login` |
 | OpenClaw CLI | TG 通知 | `npm i -g openclaw` |
-| Chrome DevTools MCP | URL 内容提取 + 浏览器验证 | 已在用户环境配置 |
+| Playwright MCP | URL 内容提取 + 浏览器验证 | 已在用户环境配置 |
 | WebMCP / Playwright Browser MCP | 关键交互链路验证 | 已在用户环境配置 |
 
 ---
@@ -121,7 +121,7 @@ git clone https://github.com/evan-taojiangcb/sdlc-workflow ~/.agents/skills/sdlc
 
 ### `/sdlc-workflow mini`
 
-用于微小任务，最终验收仍基于 Chrome DevTools MCP + WebMCP。
+用于微小任务，最终验收仍基于 Playwright MCP + WebMCP。
 它不会跳过 gate；mini 模式仍需执行精简版 Gate 1、验证能力检测、Gate 2 和最终 MCP 验收。
 
 ---
@@ -199,7 +199,7 @@ TG_USERNAME=your_telegram_username
 
 # 可选（默认值）
 TEST_FRAMEWORK=jest        # jest | vitest | mocha
-E2E_FRAMEWORK=playwright   # 固定使用 Playwright，配合 Chrome DevTools MCP + WebMCP
+E2E_FRAMEWORK=playwright   # 固定使用 Playwright，配合 Playwright MCP + WebMCP
 LINT_TOOL=eslint           # eslint | biome
 REVIEW_MAX_ROUNDS=1        # 1-10
 GIT_BRANCH_PREFIX=feat/    # 分支前缀

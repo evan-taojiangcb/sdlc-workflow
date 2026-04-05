@@ -8,7 +8,7 @@
 |------|------|----------|
 | 纯文本 | `创建一个用户登录模块` | 直接作为需求内容 |
 | file:// 路径 | `file:///path/to/requirements.txt` | 读取本地文件 |
-| URL | `https://jira.company.com/browse/PROJ-123` | Chrome DevTools MCP 提取 |
+| URL | `https://jira.company.com/browse/PROJ-123` | Playwright MCP 提取 |
 
 ## 输出
 
@@ -28,8 +28,8 @@ if [[ "$INPUT" == file://* ]]; then
 elif [[ "$INPUT" == http://* ]] || [[ "$INPUT" == https://* ]]; then
   # URL 提取
   TYPE="url"
-  # 使用 Chrome DevTools MCP 打开 URL 并提取内容
-  # 详见 Chrome DevTools MCP 文档
+  # 使用 Playwright MCP 打开 URL 并提取内容
+  # 详见 Playwright MCP 文档
 else
   # 纯文本
   CONTENT="$INPUT"
@@ -193,7 +193,7 @@ case "$INPUT_TYPE" in
     CONTENT=$(cat "${INPUT#file://}")
     ;;
   url)
-    # 使用 Chrome DevTools MCP 打开页面并提取正文摘要
+    # 使用 Playwright MCP 打开页面并提取正文摘要
     # 不要调用不存在的 mcp__chrome_devtools__extract
     CONTENT="<从页面可见正文提取的结构化摘要>"
     ;;
@@ -232,7 +232,7 @@ notify_tg "📥 需求已收录: $(echo "$CONTENT" | head -c 50)..."
 |----------|----------|
 | 文件不存在 (file://) | 记录日志，提示用户检查路径 |
 | URL 无法访问 | 记录日志，保留 URL 引用待人工处理 |
-| Chrome DevTools MCP 失败 | 降级为手动复制粘贴，提示用户 |
+| Playwright MCP 失败 | 降级为手动复制粘贴，提示用户 |
 | 目录创建失败 | 中止 Pipeline，提示权限问题 |
 | TG 通知发送失败 | 只记录日志，继续执行 |
 

@@ -41,5 +41,5 @@
 - 进入 `/sdlc-doit` 或 `/sdlc-doit-mini` 的测试阶段前，必须先检测项目当前具备的验证能力，不能静默跳过测试决策
 - `TEST_BOOTSTRAP_POLICY` 决定缺少测试基础设施时的行为；existing project 默认推荐 `report`
 - OpenClaw / 远程场景默认不依赖交互式 ask，优先通过报告和 TG 通知输出缺口与后续动作
-- 测试链路为 `Playwright 预检 + Chrome DevTools MCP + WebMCP 最终交互验收`
-- 最终交互测试与最终测试报告以 Chrome DevTools MCP 和 WebMCP 产物为准
+- 测试链路为 `Playwright 预检 + Playwright MCP + WebMCP 最终交互验收`
+- 最终交互测试与最终测试报告以 Playwright MCP 和 WebMCP 产物为准

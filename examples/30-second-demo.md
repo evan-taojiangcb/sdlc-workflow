@@ -89,12 +89,12 @@ docs/iterations/YYYY-MM-DD/001-home-bg-black-fix/
 
 重点展示：
 
-- `tests/reports/chrome/`
+- `tests/reports/playwright/`
 - `tests/reports/webmcp/`
 
 说明：
 
-> 最终通过不是靠模型说“我改好了”，而是靠 Chrome DevTools MCP 和 WebMCP 的浏览器交互证据。
+> 最终通过不是靠模型说“我改好了”，而是靠 Playwright MCP 和 WebMCP 的浏览器交互证据。
 
 7. 收尾
 

@@ -20,7 +20,7 @@ mkdir -p "$PROJECT_ROOT/tests/unit/server"
 mkdir -p "$PROJECT_ROOT/tests/unit/packages"
 mkdir -p "$PROJECT_ROOT/tests/e2e"
 mkdir -p "$PROJECT_ROOT/tests/reports"
-mkdir -p "$PROJECT_ROOT/tests/reports/chrome"
+mkdir -p "$PROJECT_ROOT/tests/reports/playwright"
 mkdir -p "$PROJECT_ROOT/tests/reports/webmcp"
 
 # 复制模板（不覆盖已存在的文件）

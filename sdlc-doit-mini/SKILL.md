@@ -33,13 +33,13 @@ homepage: https://github.com/evan-taojiangcb/sdlc-workflow
 5. 在 iteration 产物完成前，不得直接编辑业务代码
 6. 在业务代码修改前，必须先执行 mini Gate 1
 7. `tasks.md` 完成后必须回写勾选状态
-8. 实现后必须先做 validation capability detection，确认 lint / unit / Playwright / Chrome DevTools MCP / WebMCP 的可用性
+8. 实现后必须先做 validation capability detection，确认 lint / unit / Playwright / Playwright MCP / WebMCP 的可用性
 9. validation capability detection 完成后，必须执行 mini Gate 2
 10. `TEST_BOOTSTRAP_POLICY` 决定缺少测试基础设施时的行为；existing project 默认推荐 `report`
 11. OpenClaw / 远程场景不要依赖交互式 ask，优先输出报告和 TG 通知
 12. Playwright 只作为预检
 13. 最终通过依据必须是：
-    - Chrome DevTools MCP
+    - Playwright MCP
     - WebMCP
 14. 必须生成 mini 最终报告，记录 Gate、验证能力检测和 MCP 验收结果
 

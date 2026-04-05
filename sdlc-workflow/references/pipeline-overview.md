@@ -21,7 +21,7 @@ graph TD
     SLUG --> ROUTE{输入类型路由}
     ROUTE -->|文本| C1[直接解析]
     ROUTE -->|"file://"| C2[读取文件]
-    ROUTE -->|URL| C3["Chrome DevTools MCP 提取"]
+    ROUTE -->|URL| C3["Playwright MCP 提取"]
 
     C1 --> S1
     C2 --> S1
@@ -64,7 +64,7 @@ graph TD
 | 步骤 | 名称 | Pattern | 输入 | 输出 | 工具 |
 |------|------|---------|------|------|------|
 | ⓪ | 初始化 + 模式识别 | — | 项目目录 | 初始化结构 + existing baseline | init-project.sh + existing-project-intake |
-| ① | requirements-ingestion | Router + Tool Wrapper | 文本/file/URL | requirements.md | Read + Chrome DevTools MCP |
+| ① | requirements-ingestion | Router + Tool Wrapper | 文本/file/URL | requirements.md | Read + Playwright MCP |
 | ② | requirements-clarifier | Evaluator | requirements.md | requirements.md (标注版) | Claude Code 内置 |
 | ③ | design-generator | Generator | requirements.md + ARCHITECTURE.md + SECURITY.md + 历史 | design.md | Claude Code |
 | ④ | task-generator | Generator | design.md | tasks.md | Claude Code |
@@ -73,7 +73,7 @@ graph TD
 | ⑥ | Claude Code 开发 | — | tasks.md | 代码变更 | Claude Code |
 | ⑦ | test-generator | Generator | tasks.md + git diff | tests/unit/ + tests/e2e/ | Claude Code |
 | ⑧ | code-reviewer | Evaluator-Optimizer | git diff + CODING_GUIDELINES.md + SECURITY.md | PASS/FAIL | Codex CLI |
-| ⑨ | test-pipeline | Pipeline | tests/ | tests/reports/ | Lint + Playwright 预检 + Chrome DevTools MCP + WebMCP 最终验收 |
+| ⑨ | test-pipeline | Pipeline | tests/ | tests/reports/ | Lint + Playwright 预检 + Playwright MCP + WebMCP 最终验收 |
 | ⑨.1 | 测试修复文档同步 | Tool Wrapper | design.md/tasks.md 修复 diff | 更新后的 ARCHITECTURE/SECURITY | Claude Code |
 | ⑩ | docs-updater | Tool Wrapper | 代码变更 + 迭代产物 | 更新后的文档 | Claude Code |
 | ⑪ | git-committer | Tool Wrapper | 所有变更 | PR URL | Git + GitHub CLI |
@@ -158,7 +158,7 @@ git diff (代码变更)   ──────→  🔍 Gate 2: code-reviewer
 │  │   ├── unit/server/                                   │
 │  │   ├── unit/packages/                                 │
 │  │   ├── e2e/                                           │
-│  │   └── reports/chrome/                                │
+│  │   └── reports/playwright/                                │
 │  ├── .env                                               │
 │  └── .env.example                                       │
 └─────────────────────────────────────────────────────────┘
@@ -179,7 +179,7 @@ git diff (代码变更)   ──────→  🔍 Gate 2: code-reviewer
 - 取消 `specs/` 目录，v6 中 specs/ 和 tests/ 职责重叠
 - v7 统一为 `tests/`
 - v8 进一步要求单元测试镜像 workspace 目录，不得写回源码目录
-- 测试报告统一写入 `tests/reports/`，其中浏览器验证证据写入 `tests/reports/chrome/` 与 `tests/reports/webmcp/`
+- 测试报告统一写入 `tests/reports/`，其中浏览器验证证据写入 `tests/reports/playwright/` 与 `tests/reports/webmcp/`
 
 ### 6.2 迭代目录命名
 - v6 扁平 `YYYY-MM-DD/` 结构导致同日多需求冲突

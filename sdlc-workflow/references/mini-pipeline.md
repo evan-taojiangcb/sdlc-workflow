@@ -105,7 +105,7 @@ notify_tg "🔨 mini 开始实现: <需求摘要前50字>"
 1. lint 能力
 2. unit test 能力
 3. Playwright 预检能力
-4. Chrome DevTools MCP 能力
+4. Playwright MCP 能力
 5. WebMCP 能力
 
 并输出到 mini 报告。
@@ -141,17 +141,17 @@ notify_tg "⚠️ mini Gate 2 超过 {N} 轮，需人工介入"
 最终必须执行：
 
 1. Playwright 预检（若适用）
-2. Chrome DevTools MCP
+2. Playwright MCP
 3. WebMCP
 
-最终通过结论只能由 Chrome DevTools MCP + WebMCP 给出。
+最终通过结论只能由 Playwright MCP + WebMCP 给出。
 
 **TG 通知**：
 
 ```bash
 # 全部通过
 notify_tg "🧪 mini 验收通过 ✅
-📊 Chrome DevTools MCP: ✅ | WebMCP: ✅"
+📊 Playwright MCP: ✅ | WebMCP: ✅"
 
 # 失败
 notify_tg "🧪 mini 验收失败:
@@ -168,7 +168,7 @@ notify_tg "🧪 mini 验收失败:
 3. Gate 1 result
 4. Validation Capability Detection
 5. Gate 2 result
-6. Chrome DevTools MCP findings
+6. Playwright MCP findings
 7. WebMCP findings
 8. Tasks status
 9. Residual risks

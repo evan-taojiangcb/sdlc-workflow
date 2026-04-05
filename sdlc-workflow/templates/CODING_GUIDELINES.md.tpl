@@ -35,7 +35,7 @@
 - 每个 E2E 文件必须带唯一场景 ID，如 `E2E-001`
 - 每个 E2E 文件必须注明覆盖的 Requirement IDs 和 Task IDs
 - 同一需求路径不得被重复创建多个等价 E2E 场景；若已有场景覆盖，应扩展原文件或显式记录替代关系
-- E2E 结果报告必须包含 Chrome DevTools MCP 的验证证据
+- E2E 结果报告必须包含 Playwright MCP 的验证证据
 
 ## Git 规范
 <!-- 描述分支策略和 Commit Message 格式 -->

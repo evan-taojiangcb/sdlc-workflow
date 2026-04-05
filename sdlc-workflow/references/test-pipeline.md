@@ -2,12 +2,12 @@
 
 ## 输入
 
-`tests/unit/` 和 `tests/e2e/` 内的测试文件，以及 Chrome DevTools MCP 的验证产物
+`tests/unit/` 和 `tests/e2e/` 内的测试文件，以及 Playwright MCP 的验证产物
 
 ## 输出
 
 `tests/reports/<slug>-<timestamp>.md` — 测试执行报告  
-`tests/reports/chrome/<slug>-<scenario>.md` — Chrome DevTools MCP 验证记录  
+`tests/reports/playwright/<slug>-<scenario>.md` — Playwright MCP 验证记录  
 `tests/reports/webmcp/<slug>-<scenario>.md` — WebMCP 验证记录
 
 ## 详细行为
@@ -19,7 +19,7 @@ graph LR
     LINT["Stage 1: Lint<br/>$LINT_TOOL"]
     UNIT["Stage 2: Unit<br/>$TEST_FRAMEWORK"]
     E2E["Stage 3: E2E<br/>$E2E_FRAMEWORK"]
-    CHROME["Stage 4: Chrome DevTools MCP<br/>页面/控制台/网络验证"]
+    CHROME["Stage 4: Playwright MCP<br/>页面/控制台/网络验证"]
     WEBMCP["Stage 5: WebMCP<br/>关键交互链路复核"]
 
     LINT --> UNIT
@@ -89,23 +89,23 @@ if [ -f "playwright-report/index.html" ]; then
 fi
 ```
 
-### 5. Stage 4: Chrome DevTools MCP 最终交互测试
+### 5. Stage 4: Playwright MCP 最终交互测试
 
-Playwright 预检通过后，必须再用 Chrome DevTools MCP 做一次最终浏览器层交互测试，至少检查：
+Playwright 预检通过后，必须再用 Playwright MCP 做一次最终浏览器层交互测试，至少检查：
 
 1. 关键页面可见状态是否符合预期
 2. Console 中是否存在未处理错误
 3. 关键网络请求是否成功返回
-4. 生成独立的 MCP 验证记录，写入 `tests/reports/chrome/`
+4. 生成独立的 MCP 验证记录，写入 `tests/reports/playwright/`
 
 ```bash
-echo "🧭 使用 Chrome DevTools MCP 验证关键用户路径..."
-# 打开页面 -> 执行动作 -> 获取 snapshot/console/network -> 写入 tests/reports/chrome/<slug>-<scenario>.md
+echo "🧭 使用 Playwright MCP 验证关键用户路径..."
+# 打开页面 -> 执行动作 -> 获取 snapshot/console/network -> 写入 tests/reports/playwright/<slug>-<scenario>.md
 ```
 
 ### 6. Stage 5: WebMCP 最终交互测试
 
-Chrome DevTools MCP 通过后，必须再用 WebMCP 复核最终关键交互链路，至少检查：
+Playwright MCP 通过后，必须再用 WebMCP 复核最终关键交互链路，至少检查：
 
 1. 关键表单输入/按钮点击链路
 2. 用户可见反馈是否正确
@@ -166,7 +166,7 @@ cat > "$REPORT_FILE" << 'EOF'
 - **迭代**: <seq>-<slug>-<type>
 - **测试框架**: $TEST_FRAMEWORK
 - **Playwright**: precheck only
-- **Chrome DevTools MCP**: required
+- **Playwright MCP**: required
 - **WebMCP**: required
 
 ## 测试结果
@@ -184,7 +184,7 @@ cat > "$REPORT_FILE" << 'EOF'
 | Requirement ID | Task IDs | Test File | Scenario ID | Chrome Evidence | WebMCP Evidence |
 |----------------|----------|-----------|-------------|-----------------|-----------------|
 | R-001 | T-001 | tests/unit/web/logic/calculator.test.ts | - | - | - |
-| R-003 | T-005 | tests/e2e/calculator/E2E-001-basic-calculation.e2e.ts | E2E-001 | tests/reports/chrome/calculator-E2E-001.md | tests/reports/webmcp/calculator-E2E-001.md |
+| R-003 | T-005 | tests/e2e/calculator/E2E-001-basic-calculation.e2e.ts | E2E-001 | tests/reports/playwright/calculator-E2E-001.md | tests/reports/webmcp/calculator-E2E-001.md |
 
 ## 失败用例（如有）
 
@@ -192,7 +192,7 @@ cat > "$REPORT_FILE" << 'EOF'
 
 ## 建议
 
-最终通过结论只能依据 Chrome DevTools MCP + WebMCP 两层交互验证给出。
+最终通过结论只能依据 Playwright MCP + WebMCP 两层交互验证给出。
 EOF
 
 echo "📋 测试报告: $REPORT_FILE"
@@ -268,10 +268,10 @@ run_e2e_tests() {
 }
 
 run_chrome_mcp_verification() {
-  mkdir -p tests/reports/chrome
-  echo "- 页面可见状态: verified" > "tests/reports/chrome/${SLUG}-E2E-001.md"
-  echo "- Console errors: none" >> "tests/reports/chrome/${SLUG}-E2E-001.md"
-  echo "- Network checks: verified" >> "tests/reports/chrome/${SLUG}-E2E-001.md"
+  mkdir -p tests/reports/playwright
+  echo "- 页面可见状态: verified" > "tests/reports/playwright/${SLUG}-E2E-001.md"
+  echo "- Console errors: none" >> "tests/reports/playwright/${SLUG}-E2E-001.md"
+  echo "- Network checks: verified" >> "tests/reports/playwright/${SLUG}-E2E-001.md"
 }
 
 run_webmcp_verification() {
@@ -301,9 +301,9 @@ while [ $round -le $REVIEW_MAX_ROUNDS ]; do
   echo "🎭 Stage 3: E2E Tests..."
   run_e2e_tests || E2E_FAILED=1
 
-  # Stage 4: Chrome DevTools MCP Verification
+  # Stage 4: Playwright MCP Verification
   CHROME_FAILED=0
-  echo "🧭 Stage 4: Chrome DevTools MCP..."
+  echo "🧭 Stage 4: Playwright MCP..."
   if [ "$E2E_FAILED" -eq 0 ]; then
     run_chrome_mcp_verification || CHROME_FAILED=1
   else
@@ -341,7 +341,7 @@ done
 | 测试框架未安装 | 提示安装， abort |
 | 测试文件不存在 | 警告，跳过该阶段 |
 | E2E 测试超时 | 增加 timeout 配置 |
-| Chrome DevTools MCP 未验证 | 视为测试未完成 |
+| Playwright MCP 未验证 | 视为测试未完成 |
 | WebMCP 未验证 | 视为测试未完成 |
 | 并行执行失败 | 回退为串行执行 |
 
