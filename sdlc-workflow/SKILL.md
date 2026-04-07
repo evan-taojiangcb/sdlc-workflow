@@ -297,6 +297,11 @@ STAGE 1: npx $LINT_TOOL .        # 快速失败
 STAGE 2: npx $TEST_FRAMEWORK     # unit tests
 STAGE 3: npx playwright test     # Playwright 预检
 STAGE 4: Playwright MCP 功能验收（⚠️ 不可跳过）
+  ⚠️ 前置：Agent 必须自行启动 dev server
+    → 读取 package.json scripts 检测启动命令（dev > start > serve）
+    → 后台启动 dev server，等待 ready/listening 关键词
+    → 从输出中提取实际 URL 和端口
+    → ❌ 禁止因 "dev server 未运行" 跳过或标记 Pending
   → 必须真正调用 Playwright MCP 工具:
     browser_navigate → browser_snapshot → browser_click/type
     → browser_console_messages → browser_screenshot
