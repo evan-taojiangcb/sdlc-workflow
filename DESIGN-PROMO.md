@@ -2,7 +2,7 @@
 
 > **让 AI 按工程规矩干活，而不是自由发挥。**
 >
-> 一套面向 Claude Code 的全流程 SDLC 自动化技能——从需求进入到 PR 合并，中间有设计审查、代码审查、浏览器验收，每一步都有产物、有证据、可恢复。
+> 一套面向 Claude Code 的全流程 SDLC 自动化技能——从需求拆解到 PR 合并，中间有人工审核、设计审查、代码审查、浏览器验收，每一步都有产物、有证据、可恢复。
 
 ---
 
@@ -13,11 +13,12 @@
 | 痛点 | 你现在怎么处理 | 用了这套系统之后 |
 |------|--------------|----------------|
 | 模型擅自把目录结构改了 | 事后人工修，或者放弃 | 目录约束作为规则注入，改不了 |
+| AI 设计方案没经过人审就直接写代码 | 写完才发现方向不对 | proposal 暂停等人工审核，apply 才开始开发 |
 | 说"已完成"但实际没测 | 手动逐个验证 | 最终通过必须有浏览器交互证据 |
 | 老项目交给 AI，被当新项目重建 | 反复解释"别动现有架构" | 先 intake 再开发，baseline 锁定现有结构 |
 | 审查全靠自己看 diff | 通常看不过来就跳过了 | Codex CLI 自动审查，Gate 失败就停 |
 | 做了什么改动，过两天就忘 | 翻 Git log 猜 | 每轮需求生成独立 iteration 目录，含 requirements/design/tasks |
-| 小改动不想跑全流程 | 直接裸改，没记录 | mini 模式：5 步精简流程，但仍有 Gate 和验收 |
+| 小改动不想跑全流程 | 直接裸改，没记录 | mini 模式：精简流程，但仍有 Gate 和验收 |
 
 **一句话总结**：这是一套用**工程 contract** 而非 prompt 技巧来约束 AI 行为的 SDLC 系统。
 
@@ -51,14 +52,20 @@ TG/Telegram 通知你结果                           ← 有通知
 # 初始化：接入你的项目（tg= 用户账号数字ID）
 /sdlc-workflow init "tg=123456789 review=1"
 
-# 标准需求：走完整 12 步流程
+# 需求拆解：拆解需求 + Gate 1 审查 → 暂停等人工审核
+/sdlc-workflow proposal 增加用户登录模块
+
+# 审核通过后：继续开发 → 测试 → Gate 2 → PR
+/sdlc-workflow apply
+
+# 全自动：Proposal + Apply 不停顿
 /sdlc-workflow doit 增加用户登录模块
 
 # 小任务：走精简流程，但不跳过 Gate
 /sdlc-workflow mini 把首页背景改成黑色
 ```
 
-三种模式，一个入口。不需要记多个命令名。
+五种模式，一个入口。推荐流程：`proposal` → 人工审核 → `apply`。
 
 > **前置条件**：使用 TG 通知前需先配置 OpenClaw CLI（`npm i -g openclaw && openclaw auth login && openclaw channel connect telegram`），获取你的 Telegram 账号数字 ID 或 chat_id。
 
@@ -82,9 +89,9 @@ TG/Telegram 通知你结果                           ← 有通知
 ```
 检测到 package.json, .git/, src/ → 判定为 existing project
   ↓
-生成 PROJECT_BASELINE.md     ← 锁定现有技术栈
-生成 EXISTING_STRUCTURE.md   ← 锁定现有目录结构
-生成 TEST_BASELINE.md        ← 盘点现有测试能力
+生成 .claude/PROJECT_BASELINE.md     ← 锁定现有技术栈
+生成 .claude/EXISTING_STRUCTURE.md   ← 锁定现有目录结构
+生成 .claude/TEST_BASELINE.md        ← 盘点现有测试能力
   ↓
 后续所有 design 必须引用 baseline，不能自由发挥
 ```
@@ -109,7 +116,7 @@ Codex CLI   → 独立审查（Gate 1 审设计，Gate 2 审代码）
 | **Verified** | 经过验证的事实 | 真实文件、命令输出、测试报告、浏览器截图 |
 | **Claimed** | 仅被声称而未验证 | handoff 叙述、模型归纳、口头说明 |
 
-**最终通过标准**：Playwright MCP + WebMCP 的浏览器交互证据，而非模型自述。
+**最终通过标准**：Playwright MCP + CDP 的浏览器交互证据，而非模型自述。
 
 ### 5. 可恢复，不怕中断
 
@@ -121,11 +128,13 @@ docs/iterations/
       ├── 001-user-login-feature/
       │   ├── requirements.md
       │   ├── design.md
-      │   └── tasks.md
+      │   ├── tasks.md
+      │   └── status.json         ← proposal/apply 状态
       └── 002-password-reset-fix/
           ├── requirements.md
           ├── design.md
-          └── tasks.md
+          ├── tasks.md
+          └── status.json
 ```
 
 会话中断后，依赖 Git + iteration 产物可以让下一个 session 续跑。
@@ -139,13 +148,29 @@ docs/iterations/
 flowchart TD
     START([🚀 /sdlc-workflow]) --> MODE{选择模式}
     MODE -->|init| DETECT{项目类型}
+    MODE -->|proposal| REQ_PROP[① 需求采集]
+    MODE -->|apply| APPLY_START[读取 status.json]
     MODE -->|doit| REQ_FULL[① 需求采集]
     MODE -->|mini| REQ_MINI[① 需求采集<br/>精简版]
 
     DETECT -->|fresh| INIT[初始化项目结构<br/>生成配置 + 模板]
-    DETECT -->|existing| INTAKE[Baseline Intake<br/>PROJECT_BASELINE<br/>EXISTING_STRUCTURE<br/>TEST_BASELINE]
+    DETECT -->|existing| INTAKE[Baseline Intake<br/>.claude/PROJECT_BASELINE<br/>.claude/EXISTING_STRUCTURE<br/>.claude/TEST_BASELINE]
     INTAKE --> INIT
     INIT --> TG0[📱 项目初始化完成]
+
+    %% ===== proposal 流程 =====
+    REQ_PROP --> CLARIFY_P[② 需求澄清]
+    CLARIFY_P --> DESIGN_P[③ 设计生成]
+    DESIGN_P --> TASKS_P[④ 任务分解]
+    TASKS_P --> GATE1_P{⑤ Gate 1<br/>Codex 审查设计}
+    GATE1_P -->|PASS ✅| STATUS_W[写入 status.json<br/>pending_review]
+    GATE1_P -->|FAIL ❌| G1P_CHK{轮数 ≤ N?}
+    G1P_CHK -->|是| DESIGN_P
+    G1P_CHK -->|否| ABORT_P([🛑 中止 · 通知人工介入])
+    STATUS_W --> PAUSE([⏸ 暂停 · 等待人工审核])
+
+    %% ===== apply 流程 =====
+    APPLY_START --> DEV
 
     %% ===== doit 完整流程 =====
     REQ_FULL --> CLARIFY[② 需求澄清]
@@ -159,7 +184,7 @@ flowchart TD
 
     DEV --> TESTGEN[⑦ 测试生成]
     TESTGEN --> GATE2{⑧ Gate 2<br/>Codex 审查代码}
-    GATE2 -->|PASS ✅| TEST[⑨ 测试执行<br/>Lint → Unit → Playwright<br/>→ Playwright MCP<br/>→ WebMCP]
+    GATE2 -->|PASS ✅| TEST[⑨ 测试执行<br/>Lint → Unit → Playwright<br/>→ Playwright MCP<br/>→ CDP]
     GATE2 -->|FAIL ❌| G2_CHK{轮数 ≤ N?}
     G2_CHK -->|是| DEV
     G2_CHK -->|否| ABORT2([🛑 中止 · 通知人工介入])
@@ -184,7 +209,7 @@ flowchart TD
     MG1_CHK -->|否| ABORT_M1([🛑 中止])
 
     DEV_M --> MG2{Mini Gate 2<br/>Codex 审查}
-    MG2 -->|PASS ✅| TEST_M[验收测试<br/>Playwright MCP + WebMCP]
+    MG2 -->|PASS ✅| TEST_M[验收测试<br/>Playwright MCP + CDP]
     MG2 -->|FAIL ❌| MG2_CHK{轮数 ≤ N?}
     MG2_CHK -->|是| DEV_M
     MG2_CHK -->|否| ABORT_M2([🛑 中止])
@@ -200,6 +225,7 @@ flowchart TD
     UPGRADE -->|是| REQ_FULL
 
     style GATE1 fill:#f59e0b,color:#000
+    style GATE1_P fill:#f59e0b,color:#000
     style GATE2 fill:#f59e0b,color:#000
     style MG1 fill:#f59e0b,color:#000
     style MG2 fill:#f59e0b,color:#000
@@ -208,12 +234,15 @@ flowchart TD
     style ABORT1 fill:#ef4444,color:#fff
     style ABORT2 fill:#ef4444,color:#fff
     style ABORT3 fill:#ef4444,color:#fff
+    style ABORT_P fill:#ef4444,color:#fff
     style ABORT_M1 fill:#ef4444,color:#fff
     style ABORT_M2 fill:#ef4444,color:#fff
     style ABORT_M3 fill:#ef4444,color:#fff
     style DONE fill:#10b981,color:#fff
     style START fill:#6366f1,color:#fff
     style UPGRADE fill:#8b5cf6,color:#fff
+    style PAUSE fill:#3b82f6,color:#fff
+    style STATUS_W fill:#3b82f6,color:#fff
 ```
 
 ---
@@ -236,9 +265,14 @@ flowchart TD
 │  Project Runtime Layer（每个项目独立）                   │
 │                                                       │
 │  .claude/CLAUDE.md         项目级 AI 指令               │
+│  .claude/ARCHITECTURE.md   架构基线                    │
+│  .claude/SECURITY.md       安全规范                    │
+│  .claude/CODING_GUIDELINES.md  编码规范                │
+│  .claude/PROJECT_BASELINE.md   existing 项目基线       │
+│  .claude/EXISTING_STRUCTURE.md existing 目录结构       │
+│  .claude/TEST_BASELINE.md      existing 测试基线       │
 │  .claude/rules/            workflow 规则               │
 │  docs/iterations/          每轮迭代产物                 │
-│  docs/ARCHITECTURE.md      架构基线                    │
 │  tests/unit|e2e|reports/   测试产物                    │
 │  apps/web|server           业务代码                    │
 │  packages/*                共享模块                    │
@@ -260,7 +294,7 @@ mini 模式的设计是**轻量但有底线**：
 | Gate 1 设计审查 | Codex 完整审查 | Codex mini 审查 |
 | 测试生成 | Unit + E2E | 按能力检测决定 |
 | Gate 2 代码审查 | Codex 完整审查 | Codex mini 审查 |
-| 浏览器验收 | Playwright MCP + WebMCP | 同左，**不精简** |
+| 浏览器验收 | Playwright MCP + CDP | 同左，**不精简** |
 | 文档更新 | 完整更新 | mini report |
 
 **核心原则**：浏览器验收不能精简，因为它是最终通过标准。
@@ -280,7 +314,7 @@ mini 模式的设计是**轻量但有底线**：
 | 测试基础设施策略 `report\|auto\|never` | 不给 existing project 偷偷装东西 |
 | 关键节点 TG 通知 | 人不在终端前也能追踪进度 |
 
-通知列表（13 个通知点，覆盖全流程每个关键环节）：
+通知列表（15 个通知点，覆盖全流程每个关键环节）：
 
 ```
 🚀 项目初始化完成（fresh/existing）
@@ -289,11 +323,13 @@ mini 模式的设计是**轻量但有底线**：
 🎨 设计文档已生成
 📋 任务分解完成: 7 个任务 | 预估工时: 18h
 🔍 设计 Review: PASS ✅
+📋 需求拆解完成，等待人工审核          ← proposal 暂停点
+🚀 开始执行需求开发                          ← apply 启动
 🔨 开始实现: <需求摘要> → 实现完成: 7/7
 🧪 测试用例已生成
 🔍 Code Review: PASS ✅
 🧪 测试结果: 15/15 通过
-📝 文档已更新: README.md, ARCHITECTURE.md, ...
+📝 文档已更新: README.md, .claude/ARCHITECTURE.md, ...
 ✅ PR: https://github.com/... | 变更: 8 files | 测试: 全部通过
 ⚠️ 需人工介入: Gate 2 超过 N 轮未通过（超限时触发）
 ```
@@ -383,7 +419,7 @@ git log --oneline -1         # 自动提交记录
 | 迭代可恢复 | ❌ 依赖聊天记录 | ❌ 依赖聊天记录 | ✅ Git + iteration 目录 |
 | 老项目安全接入 | ❌ 经常被重建 | ⚠️ 看运气 | ✅ intake → baseline → 约束 |
 | 远程运行 | ⚠️ 部分支持 | ❌ 桌面端 | ✅ OpenClaw / TG 原生支持 |
-| 变更记录 | ⚠️ Git 但无结构文档 | ⚠️ Git 但无结构文档 | ✅ requirements + design + tasks |
+| 变更记录 | ⚠️ Git 但无结构文档 | ⚠️ Git 但无结构文档 | ✅ requirements + design + tasks + status.json |
 
 ---
 
@@ -398,10 +434,10 @@ Stage 3   npx playwright test             E2E 预检
   ↓
 Stage 4   Playwright MCP             浏览器交互验证
   ↓
-Stage 5   WebMCP                          最终交互验收 ← 这才是通过标准
+Stage 5   CDP (Chrome DevTools Protocol)     最终交互验收 ← 这才是通过标准
 ```
 
-> **关键**：Playwright 只是预检（preflight），不是最终通过依据。最终通过必须有 Playwright MCP + WebMCP 的真实浏览器交互证据。
+> **关键**：Playwright 只是预检（preflight），不是最终通过依据。最终通过必须有 Playwright MCP + CDP 的真实浏览器交互证据。
 
 ---
 
@@ -412,6 +448,8 @@ sdlc-workflow/
 ├── SKILL.md                         # 入口 + Pipeline 编排
 ├── references/                      # 步骤详细规范
 │   ├── pipeline-overview.md         #   完整流程概览
+│   ├── proposal.md                  #   需求拆解命令
+│   ├── apply.md                     #   需求开发命令
 │   ├── existing-project-intake.md   #   老项目接入
 │   ├── micro-change-mode.md         #   微变更判定
 │   ├── mini-pipeline.md             #   mini 流程
@@ -446,10 +484,12 @@ sdlc-workflow/
 
 ### 当前已实现 ✅
 
-- [x] 单入口多模式（init / doit / mini）
+- [x] 单入口多模式（init / proposal / apply / doit / mini）
 - [x] Fresh + Existing project 双轨识别
 - [x] 12 步标准流程完整编排
 - [x] 双模型 Gate（Claude 生成 + Codex 审查）
+- [x] Proposal / Apply 分离（人工审核门）
+- [x] status.json 状态管理
 - [x] Iteration 目录结构化管理
 - [x] 浏览器验收作为最终通过标准
 - [x] TG/OpenClaw 远程友好设计
@@ -482,6 +522,9 @@ sdlc-workflow/
 
 **Q: 支持 TypeScript 以外的项目吗？**
 > 支持。配置 `TEST_FRAMEWORK` 和 `LINT_TOOL` 即可适配。流程本身不依赖特定语言。
+
+**Q: proposal 和 doit 怎么选？**
+> 需要审核设计方案 → proposal + apply。完全信任 AI → doit。改 CSS、改文案 → mini。
 
 **Q: mini 和 doit 怎么选？**
 > 改 CSS、改文案、小 UI 修 → mini。改 API、改数据模型、涉及多模块 → doit。mini 过程中如果发现影响范围大，会自动升级到 doit。

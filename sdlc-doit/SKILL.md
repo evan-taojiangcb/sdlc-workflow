@@ -41,7 +41,7 @@ homepage: https://github.com/evan-taojiangcb/sdlc-workflow
 6. OpenClaw / 远程场景不要依赖交互式 ask，优先输出报告和 TG 通知
 7. 最终通过依据仍为：
    - Playwright MCP
-   - WebMCP
+   - CDP
 
 ## TG 通知要求
 

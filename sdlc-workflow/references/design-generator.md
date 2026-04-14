@@ -3,8 +3,8 @@
 ## 输入
 
 1. `docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/requirements.md`
-2. `docs/ARCHITECTURE.md`
-3. `docs/SECURITY.md`
+2. `.claude/ARCHITECTURE.md`
+3. `.claude/SECURITY.md`
 4. `docs/iterations/`（历史迭代，用于上下文）
 
 ## 输出
@@ -220,8 +220,8 @@ Claude Code 在生成设计时应参考：
 ```bash
 # 1. 读取输入
 REQ_FILE="docs/iterations/$DATE/$SEQ-$SLUG-$TYPE/requirements.md"
-ARCH_FILE="docs/ARCHITECTURE.md"
-SEC_FILE="docs/SECURITY.md"
+ARCH_FILE=".claude/ARCHITECTURE.md"
+SEC_FILE=".claude/SECURITY.md"
 
 # 2. 读取历史上下文（最近 3 个迭代）
 HISTORY=$(find docs/iterations/ -name "design.md" -type f \
@@ -271,8 +271,8 @@ notify_tg "🎨 设计文档已生成: docs/iterations/$DATE/$SEQ-$SLUG-$TYPE/de
 
 - 输入：
   - requirements.md
-  - docs/ARCHITECTURE.md
-  - docs/SECURITY.md
+  - .claude/ARCHITECTURE.md
+  - .claude/SECURITY.md
   - docs/iterations/*/design.md（历史）
 - 输出：docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/design.md
 - 参考：

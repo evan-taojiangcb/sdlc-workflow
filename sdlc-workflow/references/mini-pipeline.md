@@ -106,7 +106,7 @@ notify_tg "🔨 mini 开始实现: <需求摘要前50字>"
 2. unit test 能力
 3. Playwright 预检能力
 4. Playwright MCP 能力
-5. WebMCP 能力
+5. CDP 能力（Chrome DevTools Protocol）
 
 并输出到 mini 报告。
 
@@ -142,16 +142,16 @@ notify_tg "⚠️ mini Gate 2 超过 {N} 轮，需人工介入"
 
 1. Playwright 预检（若适用）
 2. Playwright MCP
-3. WebMCP
+3. CDP
 
-最终通过结论只能由 Playwright MCP + WebMCP 给出。
+最终通过结论只能由 Playwright MCP + CDP 给出。
 
 **TG 通知**：
 
 ```bash
 # 全部通过
 notify_tg "🧪 mini 验收通过 ✅
-📊 Playwright MCP: ✅ | WebMCP: ✅"
+📊 Playwright MCP: ✅ | CDP: ✅"
 
 # 失败
 notify_tg "🧪 mini 验收失败:
@@ -169,7 +169,7 @@ notify_tg "🧪 mini 验收失败:
 4. Validation Capability Detection
 5. Gate 2 result
 6. Playwright MCP findings
-7. WebMCP findings
+7. CDP findings
 8. Tasks status
 9. Residual risks
 
@@ -179,7 +179,7 @@ notify_tg "🧪 mini 验收失败:
 notify_tg "✅ mini 迭代完成!
 📝 提交: <commit-message>
 📊 变更: <N> files
-🧪 验收: Chrome MCP ✅ | WebMCP ✅
+🧪 验收: Playwright MCP ✅ | CDP ✅
 📂 报告: docs/iterations/<date>/<seq>-<slug>-<type>/"
 ```
 
@@ -191,3 +191,5 @@ notify_tg "✅ mini 迭代完成!
 4. 不得跳过 Gate 2
 5. 不得用"手工观察页面"替代最终 MCP 验收
 6. 关键步骤（Gate 1/2、验收、完成）必须发送 TG 通知
+7. **Artifact Gate**：标记验收完成前，必须验证 Playwright MCP 验收记录和最终报告文件存在于磁盘；Todo 状态必须与磁盘产物交叉验证
+8. **Token 耗尽保护**：context_usage > 70% 时先 /compact 再进入验收；token 不足时写入 `status.json: pipeline_stage="mini-test-incomplete"` + ABORT，禁止静默标记完成

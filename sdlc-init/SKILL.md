@@ -67,9 +67,9 @@ bash ../sdlc-workflow/scripts/update-workflow-config.sh --project-root . --tg <u
 ```
 
 5. 若为 existing project，严格按照 `../sdlc-workflow/references/existing-project-intake.md` 生成：
-   - `docs/PROJECT_BASELINE.md`
-   - `docs/EXISTING_STRUCTURE.md`
-   - `docs/TEST_BASELINE.md`
+   - `.claude/PROJECT_BASELINE.md`
+   - `.claude/EXISTING_STRUCTURE.md`
+   - `.claude/TEST_BASELINE.md`
 
 ## TG 通知
 
@@ -96,9 +96,9 @@ notify_tg "🚀 项目初始化完成（existing project）
 
 - `.claude/CLAUDE.md`
 - `.claude/rules/workflow-rules.md`
-- `docs/ARCHITECTURE.md`
-- `docs/SECURITY.md`
-- `docs/CODING_GUIDELINES.md`
+- `.claude/ARCHITECTURE.md`
+- `.claude/SECURITY.md`
+- `.claude/CODING_GUIDELINES.md`
 - `.env.example`
 - `.env`
 - existing project 额外 baseline 文档
@@ -113,4 +113,4 @@ notify_tg "🚀 项目初始化完成（existing project）
 4. `REVIEW_MAX_ROUNDS` 当前值
 5. `TEST_BOOTSTRAP_POLICY` 当前值
 6. TG 通知是否已发送
-7. 后续建议使用 `/sdlc-doit` 还是 `/sdlc-doit-mini`
+7. 后续建议使用 `/sdlc-workflow proposal` 还是 `/sdlc-workflow doit` 还是 `/sdlc-workflow mini`

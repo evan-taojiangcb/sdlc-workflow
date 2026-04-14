@@ -17,8 +17,8 @@
 
 ```
 测试生成原则：
-1. 单元测试覆盖每个任务的验收标准
-2. E2E 测试覆盖关键用户场景
+1. 单元测试覆盖每个任务的验收标准（必须引用 AC-ID）
+2. E2E 测试覆盖关键用户场景（必须覆盖 happy-path + error + boundary 维度）
 3. 测试文件直接写入 tests/ 对应子目录
 4. 单元测试路径必须镜像 workspace 源码路径
 5. E2E 场景文件必须使用唯一 Scenario ID，避免重复
@@ -27,6 +27,8 @@
 7. 测试样例必须引用真实 workspace 路径，不沿用过时的 `src/*` 假设
 8. 每个 E2E 场景必须绑定 Requirement IDs 和 Task IDs
 9. 若已有 E2E 场景覆盖同一需求路径，应扩展原场景或记录替代关系，不得重复生成
+10. 每个 test case 的描述必须引用对应的 AC-ID 和场景维度，如 `it('AC-002 (error): 密码错误返回 401')`
+11. 验收标准中标注为 playwright-mcp 验证方式的 AC，必须在 Playwright MCP 验收步骤中有对应的验证计划，test-generator 只需在 coverage.md 中标记为 "deferred to MCP"
 ```
 
 ### 2. 单元测试生成
@@ -34,17 +36,30 @@
 ```typescript
 // tests/unit/web/logic/calculator.test.ts
 // 使用 $TEST_FRAMEWORK 语法
+// Covers: AC-001 (happy-path), AC-004 (boundary), AC-005 (error)
 
 import { describe, it, expect, beforeEach } from '$TEST_FRAMEWORK';
 import { calculate } from '../../../apps/web/src/logic/calculator';
 
 describe('calculate', () => {
-  it('adds two numbers', () => {
+  // AC-001 (happy-path): 正常加法
+  it('AC-001 (happy-path): adds two numbers correctly', () => {
     expect(calculate(1, 2, 'add')).toBe(3);
   });
 
-  it('throws on division by zero', () => {
-    expect(() => calculate(1, 0, 'divide')).toThrow();
+  // AC-005 (error): 除零错误
+  it('AC-005 (error): throws on division by zero', () => {
+    expect(() => calculate(1, 0, 'divide')).toThrow('Division by zero');
+  });
+
+  // AC-004 (boundary): 边界值处理
+  it('AC-004 (boundary): handles MAX_SAFE_INTEGER', () => {
+    expect(calculate(Number.MAX_SAFE_INTEGER, 1, 'add')).toBe(Number.MAX_SAFE_INTEGER + 1);
+  });
+
+  // AC-004 (boundary): 空输入
+  it('AC-004 (boundary): throws on NaN input', () => {
+    expect(() => calculate(NaN, 1, 'add')).toThrow();
   });
 });
 ```
@@ -56,6 +71,7 @@ describe('calculate', () => {
 // Scenario-ID: E2E-001
 // Requirement-IDs: R-001,R-003
 // Task-IDs: T-002,T-005
+// AC-IDs: AC-001,AC-002,AC-003,AC-006
 // 使用 Playwright 语法
 
 import { test, expect } from '@playwright/test';
@@ -65,13 +81,17 @@ test.describe('User Authentication Flow', () => {
     await page.goto('/');
   });
 
-  test('should show login form', async ({ page }) => {
+  // AC-006 (ui-state): 登录表单初始状态
+  test('AC-006 (ui-state): should show login form with all required fields', async ({ page }) => {
     await expect(page.locator('input[name="username"]')).toBeVisible();
     await expect(page.locator('input[name="password"]')).toBeVisible();
-    await expect(page.locator('button[type="submit"]')).toBeVisible();
+    const submitBtn = page.locator('button[type="submit"]');
+    await expect(submitBtn).toBeVisible();
+    await expect(submitBtn).toBeEnabled();
   });
 
-  test('should login with valid credentials', async ({ page }) => {
+  // AC-001 (happy-path): 有效凭据登录成功
+  test('AC-001 (happy-path): should login and show profile with valid credentials', async ({ page }) => {
     await page.fill('input[name="username"]', 'testuser');
     await page.fill('input[name="password"]', 'password123');
     await page.click('button[type="submit"]');
@@ -80,13 +100,23 @@ test.describe('User Authentication Flow', () => {
     await expect(page.locator('.user-profile')).toContainText('testuser');
   });
 
-  test('should show error on invalid login', async ({ page }) => {
+  // AC-002 (error): 密码错误时显示错误提示
+  test('AC-002 (error): should show error message on invalid password', async ({ page }) => {
     await page.fill('input[name="username"]', 'testuser');
     await page.fill('input[name="password"]', 'wrongpassword');
     await page.click('button[type="submit"]');
 
     await expect(page.locator('.error-message')).toBeVisible();
     await expect(page.locator('.error-message')).toContainText('Invalid credentials');
+  });
+
+  // AC-003 (boundary): 空密码提交
+  test('AC-003 (boundary): should show validation error on empty password', async ({ page }) => {
+    await page.fill('input[name="username"]', 'testuser');
+    await page.click('button[type="submit"]');
+
+    // 表单验证应阻止提交或显示验证错误
+    await expect(page.locator('.validation-error, input[name="password"]:invalid')).toBeVisible();
   });
 });
 ```
@@ -135,9 +165,25 @@ test.describe('User Authentication Flow', () => {
 
 ## E2E 测试覆盖
 
-| Scenario ID | Requirement IDs | 用户场景 | 测试文件 | 状态 |
-|-------------|-----------------|----------|----------|------|
-| E2E-001 | R-001,R-003 | 基础计算流程 | tests/e2e/calculator/E2E-001-basic-calculation.e2e.ts | ✅ |
+| Scenario ID | Requirement IDs | AC-IDs | 场景维度 | 用户场景 | 测试文件 | 状态 |
+|-------------|-----------------|--------|----------|----------|----------|------|
+| E2E-001 | R-001,R-003 | AC-001,AC-002,AC-003,AC-006 | happy+error+boundary+ui | 登录流程 | tests/e2e/calculator/E2E-001-basic-calculation.e2e.ts | ✅ |
+
+## AC 覆盖率汇总
+
+| 总 AC 数 | 单元测试覆盖 | E2E 覆盖 | MCP 验收覆盖 | 未覆盖 |
+|----------|-------------|----------|-------------|--------|
+| 12 | 8 | 6 | 3 | 0 |
+
+### 按场景维度覆盖
+
+| 维度 | 总数 | 已覆盖 | 覆盖率 |
+|------|------|--------|--------|
+| happy-path | 4 | 4 | 100% |
+| error | 3 | 3 | 100% |
+| boundary | 2 | 2 | 100% |
+| ui-state | 2 | 1 | 50% (1 deferred to MCP) |
+| security | 1 | 1 | 100% |
 
 ## 待补充测试
 

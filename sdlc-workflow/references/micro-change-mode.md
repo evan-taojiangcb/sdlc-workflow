@@ -69,7 +69,7 @@ mini 模式下：
 4. 若改动涉及逻辑，则必须补最小 unit test
 5. 最终通过结论仍然必须基于：
    - Playwright MCP
-   - WebMCP
+   - CDP
 
 Playwright 仍只作为预检，不是最终通过依据。
 
@@ -81,7 +81,7 @@ Playwright 仍只作为预检，不是最终通过依据。
 2. unit test 命令或框架是否存在
 3. Playwright 预检是否可运行
 4. Playwright MCP 是否可用
-5. WebMCP 是否可用
+5. CDP 是否可用
 
 检测结果必须在 mini 报告中归类为：
 

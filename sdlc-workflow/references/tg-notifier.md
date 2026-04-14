@@ -191,9 +191,9 @@ openclaw message send --channel telegram --target "$TG_USERNAME" --message "$MSG
 ```
 📝 文档已更新:
 📄 README.md
-📄 docs/ARCHITECTURE.md
-📄 docs/SECURITY.md
-📄 docs/CODING_GUIDELINES.md
+📄 .claude/ARCHITECTURE.md
+📄 .claude/SECURITY.md
+📄 .claude/CODING_GUIDELINES.md
 📄 .claude/CLAUDE.md (iterations 引用已更新)
 ```
 

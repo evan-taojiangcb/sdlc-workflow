@@ -4,7 +4,8 @@
 
 1. 这是一个能接入现有项目的 workflow
 2. 它不是自由发挥，而是有 gate 和 evidence 的工程流程
-3. 它最终用浏览器交互证据验收
+3. 它有人工审核门，AI 不会全权决定设计
+4. 它最终用浏览器交互证据验收
 
 ## Demo Goal
 
@@ -12,26 +13,33 @@
 
 - 选一个 existing project
 - 先执行 `init`
-- 再执行一个 `mini` 需求
-- 最后展示 iteration 产物、浏览器验收和 git commit
+- 运行 `proposal` 需求拆解
+- 审阅产物后执行 `apply`
+- 展示 iteration 产物、status.json、浏览器验收和 git commit
 
 推荐需求：
+
+```text
+/sdlc-workflow proposal 增加用户登录模块，支持邮箱和手机号注册
+```
+
+这个需求足够展示：
+
+- 需求拆解全流程
+- 人工审核暂停点
+- 结构约束
+
+如果时间有限，也可以用 mini：
 
 ```text
 /sdlc-workflow mini 把首页背景改成黑色
 ```
 
-这个需求足够小，能清楚展示：
-
-- mini 流程
-- 结构约束
-- 最终浏览器验收
-
 ## 30 秒版本
 
 ### 开场一句话
 
-> 这是一个给 Claude Code / OpenClaw 用的 SDLC workflow。它不是直接让模型改代码，而是先 intake、再设计、再 gate、最后用浏览器交互证据做验收。
+> 这是一个给 Claude Code / OpenClaw 用的 SDLC workflow。它不是直接让模型改代码，而是先拆解需求、等人工审核、再开发。最后用浏览器交互证据做验收。
 
 ### 演示步骤
 
@@ -55,64 +63,84 @@
 
 重点展示：
 
-- `docs/PROJECT_BASELINE.md`
-- `docs/EXISTING_STRUCTURE.md`
-- `docs/TEST_BASELINE.md`
+- `.claude/PROJECT_BASELINE.md`
+- `.claude/EXISTING_STRUCTURE.md`
+- `.claude/TEST_BASELINE.md`
 
 说明：
 
 > 这一步的作用是把现有结构固化成流程真相源，后面模型不能自由发挥打乱它。
 
-4. 执行 mini 需求
+4. 运行 proposal 需求拆解
 
 ```text
-/sdlc-workflow mini 把首页背景改成黑色
+/sdlc-workflow proposal 增加用户登录模块
 ```
 
 说明：
 
-> mini 不是跳过流程，它还是会生成 requirements、design、tasks，走 mini Gate 1 / Gate 2，最后做浏览器验收。
+> proposal 会走完需求采集、澄清、设计、任务分解和 Gate 1 审查，然后暂停等人工审核。
 
-5. 展示 iteration 目录
+5. 展示 proposal 产物
 
 重点展示：
 
 ```text
-docs/iterations/YYYY-MM-DD/001-home-bg-black-fix/
+docs/iterations/YYYY-MM-DD/001-user-login-feature/
+├── requirements.md    # 结构化需求
+├── design.md          # 技术设计
+├── tasks.md           # 任务分解
+└── status.json        # phase: "pending_review"
 ```
 
 说明：
 
-> 每次变更都有 requirements、design、tasks，所以这不是一次性 prompt，而是一套可恢复、可追溯的迭代记录。
+> 每次需求都有完整的拆解记录。status.json 标记了 pending_review 状态，需要人工审核后才能继续。
 
-6. 展示最终验收产物
+6. 审核通过，执行 apply
+
+```text
+/sdlc-workflow apply
+```
+
+说明：
+
+> apply 会自动找到最近的 pending proposal，开始开发、测试、代码审查、浏览器验收，最后创建 PR。
+
+7. 展示最终验收产物
 
 重点展示：
 
 - `tests/reports/playwright/`
-- `tests/reports/webmcp/`
+- `tests/reports/cdp/`
 
 说明：
 
-> 最终通过不是靠模型说“我改好了”，而是靠 Playwright MCP 和 WebMCP 的浏览器交互证据。
+> 最终通过不是靠模型说"我改好了"，而是靠 Playwright MCP 和 CDP 的浏览器交互证据。
 
-7. 收尾
+8. 收尾
 
 说明：
 
-> 这套 workflow 适合 full-stack monorepo，尤其是 existing project 接入、微小需求治理和 AI 协作交付。
+> 这套 workflow 适合 full-stack monorepo，尤其是 existing project 接入、需求拆解审核和 AI 协作交付。
 
 ## 60-Second Expanded Version
 
-如果你有 1 分钟，可以多补两点：
+如果你有 1 分钟，可以多补三点：
 
-1. 目录 guardrails
+1. Proposal / Apply 分离
+
+说明：
+
+> proposal 做需求拆解到 Gate 1，暂停等人工审核。apply 从审核通过的产物继续开发到 PR。doit 是全自动模式，跳过人工审核。
+
+2. 目录 guardrails
 
 说明：
 
 > 它默认约束 `apps/web`、`apps/server`、`packages/*`，不会让模型随便新建根目录 `web/`、`api/`、`server/`。
 
-2. 双模型 gate
+3. 双模型 gate
 
 说明：
 

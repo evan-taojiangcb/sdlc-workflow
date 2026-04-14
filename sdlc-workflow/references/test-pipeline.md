@@ -8,7 +8,7 @@
 
 `tests/reports/<slug>-<timestamp>.md` — 测试执行报告  
 `tests/reports/playwright/<slug>-<scenario>.md` — Playwright MCP 验证记录  
-`tests/reports/webmcp/<slug>-<scenario>.md` — WebMCP 验证记录
+`tests/reports/cdp/<slug>-<scenario>.md` — CDP 验证记录
 
 ## 详细行为
 
@@ -20,14 +20,14 @@ graph LR
     UNIT["Stage 2: Unit<br/>$TEST_FRAMEWORK"]
     E2E["Stage 3: E2E<br/>$E2E_FRAMEWORK"]
     CHROME["Stage 4: Playwright MCP<br/>页面/控制台/网络验证"]
-    WEBMCP["Stage 5: WebMCP<br/>关键交互链路复核"]
+    CDP_NODE["Stage 5: CDP<br/>关键交互链路复核"]
 
     LINT --> UNIT
     LINT --> E2E
     UNIT --> REPORT["测试报告"]
     E2E --> CHROME
-    CHROME --> WEBMCP
-    WEBMCP --> REPORT
+    CHROME --> CDP_NODE
+    CDP_NODE --> REPORT
 ```
 
 ### 2. Stage 1: Lint
@@ -189,20 +189,23 @@ FOR EACH 关键用户路径 IN tasks.md 的验收标准:
 - FAIL 时必须记录具体失败原因，供修复阶段参考
 - **不允许跳过此步骤**，即使 Playwright 预检已通过
 
-### 6. Stage 5: WebMCP 交互复核
+### 6. Stage 5: CDP 交互复核（Chrome DevTools Protocol）
 
-Playwright MCP 通过后，使用 WebMCP 对关键交互链路做最终复核：
+Playwright MCP 通过后，使用 CDP（chrome-cdp skill）对关键交互链路做最终复核：
 
 ```
 FOR EACH 关键交互链路:
-  1. 调用 WebMCP 打开目标页面
-  2. 执行关键操作（表单提交、按钮点击、导航跳转）
-  3. 验证用户可见反馈是否正确
-  4. 确认与 Playwright MCP 结果一致
-  5. 生成验收记录 → tests/reports/webmcp/<slug>-<scenario>.md
+  1. 调用 cdp.mjs list → 确认目标页面 targetId
+  2. 调用 cdp.mjs nav <target> <url> → 导航到目标页面
+  3. 调用 cdp.mjs snap <target> → 获取辅助功能树，确认 DOM 结构正确
+  4. 调用 cdp.mjs click <target> <selector> / cdp.mjs eval <target> <expr> → 执行关键交互
+  5. 调用 cdp.mjs net <target> → 检查网络请求是否正常返回
+  6. 调用 cdp.mjs shot <target> → 截图留证
+  7. 确认与 Playwright MCP 结果一致
+  8. 生成验收记录 → tests/reports/cdp/<slug>-<scenario>.md
 ```
 
-验收记录格式同 Stage 4。最终通过结论只能由 **Playwright MCP + WebMCP 两层验证** 共同给出。
+验收记录格式同 Stage 4。最终通过结论只能由 **Playwright MCP + CDP 两层验证** 共同给出。
 
 ### 7. Stage 6: 生成最终验收报告（HTML 图表）
 
@@ -220,13 +223,13 @@ Agent 必须生成包含以下内容的 HTML 文件：
 
 2. 阶段结果概览（饼状图 / 环形图）
    - 总体通过/失败比例
-   - 各阶段状态（Lint / Unit / E2E / Playwright MCP / WebMCP）
+   - 各阶段状态（Lint / Unit / E2E / Playwright MCP / CDP）
 
 3. 各阶段详细结果（横向柱状图）
    - 每阶段的通过数/总数、耗时、覆盖率
 
 4. Requirement → Test 追溯矩阵（表格）
-   - 需求 ID → 任务 ID → 测试文件 → Playwright MCP 证据 → WebMCP 证据
+   - 需求 ID → 任务 ID → 测试文件 → Playwright MCP 证据 → CDP 证据
    - 每行用颜色标记通过/失败
 
 5. 失败用例列表（如有）
@@ -302,7 +305,7 @@ Agent 生成的 HTML 必须是单文件可直接打开（内联 CSS + JS）：
     // 使用原生 Canvas 或内联 Chart.js CDN 绘制图表
     // Agent 根据实际测试结果填充数据
     const stageData = {
-      labels: ['Lint', 'Unit', 'E2E', 'Playwright MCP', 'WebMCP'],
+      labels: ['Lint', 'Unit', 'E2E', 'Playwright MCP', 'CDP'],
       pass: [1, 25, 8, 3, 3],
       total: [1, 25, 8, 3, 3]
     };
@@ -370,7 +373,7 @@ cat > "$REPORT_FILE" << 'EOF'
 - **测试框架**: $TEST_FRAMEWORK
 - **Playwright**: precheck only
 - **Playwright MCP**: required
-- **WebMCP**: required
+- **CDP**: required
 
 ## 测试结果
 
@@ -380,14 +383,14 @@ cat > "$REPORT_FILE" << 'EOF'
 | Unit | ✅ | 25/25 | 85% |
 | Playwright 预检 | ✅ | 8/8 | - |
 | Playwright MCP | ✅ | 3/3 | 页面、控制台、交互已验证 |
-| WebMCP | ✅ | 3/3 | 关键交互链路已复核 |
+| CDP | ✅ | 3/3 | 关键交互链路已复核 |
 
 ## Requirement → Test Matrix
 
-| Requirement ID | Task IDs | Test File | Scenario ID | Playwright MCP Evidence | WebMCP Evidence |
+| Requirement ID | Task IDs | Test File | Scenario ID | Playwright MCP Evidence | CDP Evidence |
 |----------------|----------|-----------|-------------|------------------------|------------------|
 | R-001 | T-001 | tests/unit/web/logic/calculator.test.ts | - | - | - |
-| R-003 | T-005 | tests/e2e/calculator/E2E-001-basic-calculation.e2e.ts | E2E-001 | tests/reports/playwright/calculator-E2E-001.md | tests/reports/webmcp/calculator-E2E-001.md |
+| R-003 | T-005 | tests/e2e/calculator/E2E-001-basic-calculation.e2e.ts | E2E-001 | tests/reports/playwright/calculator-E2E-001.md | tests/reports/cdp/calculator-E2E-001.md |
 
 ## 失败用例（如有）
 
@@ -399,7 +402,7 @@ cat > "$REPORT_FILE" << 'EOF'
 
 ## 建议
 
-最终通过结论只能依据 Playwright MCP + WebMCP 两层交互验证给出。
+最终通过结论只能依据 Playwright MCP + CDP 两层交互验证给出。
 EOF
 
 echo "📋 测试报告: $REPORT_FILE"
@@ -519,17 +522,19 @@ run_playwright_mcp_verification() {
   echo "🧭 Playwright MCP 验收完成"
 }
 
-run_webmcp_verification() {
-  # Agent 使用 WebMCP 对关键交互链路做最终复核：
+run_cdp_verification() {
+  # Agent 使用 CDP (chrome-cdp skill) 对关键交互链路做最终复核：
   #
-  # 1. 打开目标页面
-  # 2. 执行关键操作（表单提交、按钮点击、导航跳转）
-  # 3. 验证用户可见反馈
-  # 4. 确认与 Playwright MCP 结果一致
+  # 1. cdp.mjs list → 确认目标页面 targetId
+  # 2. cdp.mjs nav <target> <url> → 导航到目标页面
+  # 3. cdp.mjs snap <target> → 获取辅助功能树
+  # 4. cdp.mjs click / eval → 执行关键操作
+  # 5. cdp.mjs net <target> → 检查网络请求
+  # 6. cdp.mjs shot <target> → 截图留证
   #
-  mkdir -p tests/reports/webmcp
-  # Agent 将复核结果写入 tests/reports/webmcp/${SLUG}-<scenario>.md
-  echo "🌐 WebMCP 复核完成"
+  mkdir -p tests/reports/cdp
+  # Agent 将复核结果写入 tests/reports/cdp/${SLUG}-<scenario>.md
+  echo "🌐 CDP 复核完成"
 }
 
 generate_acceptance_report_html() {
@@ -584,16 +589,16 @@ while [ $round -le $REVIEW_MAX_ROUNDS ]; do
     CHROME_FAILED=1
   fi
 
-  # Stage 5: WebMCP Verification
-  WEBMCP_FAILED=0
-  echo "🌐 Stage 5: WebMCP..."
+  # Stage 5: CDP Verification
+  CDP_FAILED=0
+  echo "🌐 Stage 5: CDP..."
   if [ "$CHROME_FAILED" -eq 0 ]; then
-    run_webmcp_verification || WEBMCP_FAILED=1
+    run_cdp_verification || CDP_FAILED=1
   else
-    WEBMCP_FAILED=1
+    CDP_FAILED=1
   fi
 
-  if [ "$LINT_FAILED" -eq 0 ] && [ "$UNIT_FAILED" -eq 0 ] && [ "$E2E_FAILED" -eq 0 ] && [ "$CHROME_FAILED" -eq 0 ] && [ "$WEBMCP_FAILED" -eq 0 ]; then
+  if [ "$LINT_FAILED" -eq 0 ] && [ "$UNIT_FAILED" -eq 0 ] && [ "$E2E_FAILED" -eq 0 ] && [ "$CHROME_FAILED" -eq 0 ] && [ "$CDP_FAILED" -eq 0 ]; then
     echo "✅ 所有测试通过"
 
     # Stage 6: 生成最终验收报告（HTML 图表）
@@ -602,6 +607,25 @@ while [ $round -le $REVIEW_MAX_ROUNDS ]; do
     # 包含：饼状图（阶段概览）、柱状图（详细结果）、追溯矩阵、截图嵌入
     # 参见上方「Stage 6: 生成最终验收报告」章节的完整要求
     generate_acceptance_report_html
+
+    # ⚠️ Artifact Gate: 产物验证门禁（标记 test-pipeline 完成前必须通过）
+    echo "🔒 Artifact Gate: 验证必需产物..."
+    MISSING=0
+    if ! ls tests/reports/playwright/${SLUG}-*.md 1>/dev/null 2>&1; then
+      echo "❌ 缺少产物: tests/reports/playwright/${SLUG}-*.md"
+      MISSING=1
+    fi
+    if [ ! -f "tests/reports/${SLUG}-acceptance-report.html" ]; then
+      echo "❌ 缺少产物: tests/reports/${SLUG}-acceptance-report.html"
+      MISSING=1
+    fi
+    if [ "$MISSING" -eq 1 ]; then
+      echo "❌ Artifact Gate 未通过 — 禁止标记 test-pipeline 为 completed"
+      # Token 不足时写入 status.json 以便下轮会话断点续跑
+      # UPDATE status.json: pipeline_stage="test-pipeline-incomplete"
+      exit 1
+    fi
+    echo "✅ Artifact Gate 通过 — 所有必需产物已确认存在"
 
     exit 0
   fi
@@ -616,6 +640,26 @@ while [ $round -le $REVIEW_MAX_ROUNDS ]; do
 done
 ```
 
+## Artifact Gate（产物验证门禁）
+
+在标记 test-pipeline 为 completed 之前，**必须**验证以下产物全部存在于磁盘：
+
+| 必需产物 | 路径模式 | 来源阶段 |
+|----------|----------|----------|
+| Playwright MCP 验收记录 | `tests/reports/playwright/<slug>-*.md` | Stage 4 |
+| 最终验收报告 HTML | `tests/reports/<slug>-acceptance-report.html` | Stage 6 |
+
+**规则**：
+- 缺少任何一项 → 禁止标记 test-pipeline 为 completed
+- Todo 状态（`manage_todo_list`）必须与磁盘产物交叉验证，不能只靠内存标记
+- Token 预算不足时：写入 `status.json: pipeline_stage="test-pipeline-incomplete"` + TG 通知 + ABORT
+- 新会话启动时必须检查 `status.json` 的 `pipeline_stage` 字段，若为 `test-pipeline-incomplete` 则从中断阶段继续
+
+## 上下文保护
+
+- 进入 test-pipeline 前，若 `context_usage > 70%` 必须先执行 `/compact`
+- 进入前必须将 `pipeline_stage="test-pipeline"` 写入 status.json，确保 token 耗尽后可追溯
+
 ## 错误处理
 
 | 错误场景 | 处理方式 |
@@ -624,8 +668,9 @@ done
 | 测试文件不存在 | 警告，跳过该阶段 |
 | E2E 测试超时 | 增加 timeout 配置 |
 | Playwright MCP 未验证 | 视为测试未完成 |
-| WebMCP 未验证 | 视为测试未完成 |
+| CDP 未验证 | 视为测试未完成 |
 | 并行执行失败 | 回退为串行执行 |
+| Token 预算耗尽 | 写入 pipeline_stage="test-pipeline-incomplete"，ABORT |
 
 ## TG 通知文案
 

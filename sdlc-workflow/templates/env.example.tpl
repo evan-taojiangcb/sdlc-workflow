@@ -36,10 +36,10 @@ TEST_FRAMEWORK=jest
 
 # [固定] E2E 测试框架
 # 固定值: playwright
-# 说明: Playwright 只用于预检；最终交互测试与最终测试报告以 Playwright MCP + WebMCP 为准
+# 说明: Playwright 只用于预检；最终交互测试与最终测试报告以 Playwright MCP + CDP 为准
 # - playwright: 执行 tests/e2e/ 下的预检脚本
 # - Playwright MCP: 页面/控制台/网络验证
-# - WebMCP: 最终关键交互链路复核
+# - CDP: 最终关键交互链路复核（Chrome DevTools Protocol）
 E2E_FRAMEWORK=playwright
 
 # [可选] 是否并行执行 Unit 与 E2E

@@ -22,9 +22,9 @@ intake 的目标不是生成新架构，而是确认：
 
 必须先生成以下基线文档，再进入步骤①：
 
-1. `docs/PROJECT_BASELINE.md`
-2. `docs/EXISTING_STRUCTURE.md`
-3. `docs/TEST_BASELINE.md`
+1. `.claude/PROJECT_BASELINE.md`
+2. `.claude/EXISTING_STRUCTURE.md`
+3. `.claude/TEST_BASELINE.md`
 
 ## 详细行为
 
@@ -36,7 +36,7 @@ intake 的目标不是生成新架构，而是确认：
 2. 项目根目录已存在构建或包管理配置，如 `package.json`、`pnpm-workspace.yaml`、`turbo.json`
 3. 项目根目录已存在 `.git/` 且已有业务文件
 
-若仅缺少 `.claude/` 或 `docs/ARCHITECTURE.md`，但业务代码已经存在，也仍然属于 existing project mode。
+若仅缺少 `.claude/` 或 `.claude/ARCHITECTURE.md`，但业务代码已经存在，也仍然属于 existing project mode。
 
 ### 2. 基线分析范围
 
@@ -79,7 +79,7 @@ intake 至少要分析以下 6 类内容：
 
 - 现有测试目录和测试工具
 - 现有 lint / typecheck / unit / e2e / browser 验收入口
-- 当前是否已经具备 Playwright MCP / WebMCP 最终交互验收能力
+- 当前是否已经具备 Playwright MCP / CDP（Chrome DevTools Protocol）最终交互验收能力
 - 缺口列表
 
 ### 4. 结构保护规则
@@ -97,9 +97,9 @@ intake 至少要分析以下 6 类内容：
 
 只有当以下条件全部满足时，才能进入步骤①：
 
-1. `docs/PROJECT_BASELINE.md` 存在
-2. `docs/EXISTING_STRUCTURE.md` 存在
-3. `docs/TEST_BASELINE.md` 存在
+1. `.claude/PROJECT_BASELINE.md` 存在
+2. `.claude/EXISTING_STRUCTURE.md` 存在
+3. `.claude/TEST_BASELINE.md` 存在
 4. 设计模型已明确现有结构的保护边界
 5. 不存在“先写需求，后补基线”的倒序行为
 

@@ -21,9 +21,11 @@
 → 代码实现 → 测试生成 → Gate 2 审查 → 测试执行
 → 文档更新 → Git 提交 + PR → TG 通知
 
-三条线:
+五条线:
 init（初始化）：采集项目信息或初始化项目 → 生成baseline → 锁定结构
-doit（完整流程）：需求 → 澄清 → 设计 → 任务 → Gate1 → 开发 → 测试 → Gate2 → 验收 → gate3 -> 写入文档 → PR
+proposal（需求拆解）：需求 → 澄清 → 设计 → 任务 → Gate1 → 暂停等人工审核
+apply（需求开发）：读取 proposal 产物 → 开发 → 测试 → Gate2 → 验收 → 文档 → PR
+doit（全自动）：proposal + apply 不停顿
 mini（精简流程）：需求 → 精简设计 → MiniGate1 → 实现 → MiniGate2 → 验收 → PR
 ```
 
@@ -34,9 +36,10 @@ mini（精简流程）：需求 → 精简设计 → MiniGate1 → 实现 → Mi
 - 🔧 **可恢复，不怕中断**：每轮需求生成结构化的 iteration 目录，会话中断后，依赖 Git + iteration 产物可以让下一个 session 续跑
 - 🔐 **三道门禁**：需求设计审查、代码审查、浏览器自动验收审查，严格把控交付质量
 - 🔒 **双模型把关**：Claude Code 生成代码，Codex CLI 独立审查（不降级、不跳过）
-- 📱 **13 个 TG 通知点**：每个关键环节都发 Telegram，人不在电脑前也能追踪
+- 📋 **Proposal / Apply 分离**：需求拆解后暂停等人工审核，审核通过再执行开发，避免 AI 全权决定设计
+- 📱 **15 个 TG 通知点**：每个关键环节都发 Telegram，人不在电脑前也能追踪
 - 🛡️ **Existing Project 安全**：自动采集项目信息生成 baseline，防止 AI 乱改你的项目结构
-- 🧪 **证据链验收**：Playwright MCP + WebMCP 做最终验收以及录屏截图和验收报告，不靠"看一眼和模型说:我测完了验收通过"
+- 🧪 **证据链验收**：Playwright MCP + CDP 做最终验收以及录屏截图和验收报告，不靠"看一眼和模型说:我测完了验收通过"
 
 ## 为什么需要它
 你已经在用 Claude Code / Cursor / Codex 写代码了。但你大概率遇到过这些场面：
@@ -45,6 +48,7 @@ mini（精简流程）：需求 → 精简设计 → MiniGate1 → 实现 → Mi
 |------|--------------|----------------|
 | 老项目交给 AI，被当新项目重建 | 反复解释"别动现有架构" | 先 intake 再开发，baseline 锁定现有结构 |
 | 模型擅自把目录结构改了 | 事后人工修，或者放弃 | 目录约束作为规则注入，改不了 |
+| AI 设计方案没经过人审就直接写代码 | 写完才发现方向不对 | proposal 暂停等人工审核，apply 才开始开发 |
 | 说"已完成"但实际没测 | 手动逐个验证 | 最终通过必须有浏览器交互证据 |
 | 审查全靠自己看 diff | 通常看不过来就跳过了 | Codex CLI 自动审查，Gate 失败就停 |
 | 做了什么改动，过两天就忘 | 翻 Git log 猜 | 每轮需求生成独立 iteration 目录 |
@@ -60,6 +64,7 @@ mini（精简流程）：需求 → 精简设计 → MiniGate1 → 实现 → Mi
 |--|-----------------|--------------|---------------|
 | 目录结构约束 | ❌ 靠 prompt 祈祷 | ⚠️ 可配规则，无运行时强制 | ✅ 注入 workflow，运行时强制 |
 | 设计审查 | ❌ 无 | ❌ 无 | ✅ Codex CLI Gate 1 |
+| 人工审核门 | ❌ 无 | ❌ 无 | ✅ proposal 暂停 → 人工 → apply |
 | 代码审查 | ❌ 无 | ❌ 无 | ✅ Codex CLI Gate 2 |
 | 测试验收 | ⚠️ 口述"已测试" | ⚠️ 口述"已测试" | ✅ 浏览器交互证据 |
 | 迭代可恢复 | ❌ 依赖聊天记录 | ❌ 依赖聊天记录 | ✅ Git + iteration 目录 |
@@ -83,7 +88,7 @@ mini（精简流程）：需求 → 精简设计 → MiniGate1 → 实现 → Mi
 /plugin install sdlc-full@sdlc-workflow
 ```
 
-安装完成后即可使用 `/sdlc-workflow`、`/sdlc-init`、`/sdlc-doit`、`/sdlc-doit-mini` 四个命令。
+安装完成后即可使用 `/sdlc-workflow`命令（支持 init / proposal / apply / doit / mini 五种模式）。
 
 ### 手动安装（备选）
 
@@ -96,9 +101,6 @@ mini（精简流程）：需求 → 精简设计 → MiniGate1 → 实现 → Mi
 git clone https://github.com/evan-taojiangcb/sdlc-workflow.git ~/.claude/sdlc-workflow-repo
 mkdir -p ~/.claude/skills
 ln -sf ~/.claude/sdlc-workflow-repo/sdlc-workflow ~/.claude/skills/sdlc-workflow
-ln -sf ~/.claude/sdlc-workflow-repo/sdlc-init ~/.claude/skills/sdlc-init
-ln -sf ~/.claude/sdlc-workflow-repo/sdlc-doit ~/.claude/skills/sdlc-doit
-ln -sf ~/.claude/sdlc-workflow-repo/sdlc-doit-mini ~/.claude/skills/sdlc-doit-mini
 ```
 
 **项目级安装（仅当前项目可用）**
@@ -108,9 +110,6 @@ cd your-project
 git clone https://github.com/evan-taojiangcb/sdlc-workflow.git .claude/sdlc-workflow-repo
 mkdir -p .claude/skills
 ln -sf .claude/sdlc-workflow-repo/sdlc-workflow .claude/skills/sdlc-workflow
-ln -sf .claude/sdlc-workflow-repo/sdlc-init .claude/skills/sdlc-init
-ln -sf .claude/sdlc-workflow-repo/sdlc-doit .claude/skills/sdlc-doit
-ln -sf .claude/sdlc-workflow-repo/sdlc-doit-mini .claude/skills/sdlc-doit-mini
 ```
 
 </details>
@@ -142,24 +141,33 @@ openclaw channel info telegram       # 获取你的账号数字 ID
 # 1. 初始化你的项目（tg= 填你的 Telegram 账号数字 ID）
 /sdlc-workflow init "tg=123456789 review=1"
 
-# 2. 提一个需求，跑完整流程
-/sdlc-workflow doit 增加用户登录模块，支持邮箱和手机号注册
+# 2. 需求拆解（推荐流程）
+/sdlc-workflow proposal 增加用户登录模块，支持邮箱和手机号注册
 
-# 3. 或者跑一个小任务
+# 3. 审阅 proposal 产物 → 确认后执行开发
+/sdlc-workflow apply
+
+# 4. 或直接全自动（跳过人工审核）
+/sdlc-workflow doit 增加用户登录模块
+
+# 5. 或者跑一个小任务
 /sdlc-workflow mini 把按钮颜色改成蓝色
 ```
 
 > **前置条件**：使用 TG 通知前需先配置 OpenClaw CLI（`npm i -g openclaw && openclaw auth login && openclaw channel connect telegram`），获取你的 Telegram 账号数字 ID 或 chat_id。
 
 ---
-## 三种模式
+## 五种模式
 
-| 命令 | 适用场景 | 步骤数 |
-|------|---------|--------|
+| 命令 | 适用场景 | 说明 |
+|------|---------|------|
 | `/sdlc-workflow init` | 项目接入，生成配置和 baseline | 一次性 |
-| `/sdlc-workflow doit` | 正常 feature/fix，完整 SDLC 流程 | 12 步 |
+| `/sdlc-workflow proposal` | 需求拆解 → 等待人工审核 | 步骤 ①-⑤，产出 requirements/design/tasks |
+| `/sdlc-workflow apply` | 审核通过后执行开发 → PR | 步骤 ⑥-⑪，从 proposal 产物继续 |
+| `/sdlc-workflow doit` | 正常 feature/fix，完整 SDLC 流程（不停顿） | 12 步全自动 |
 | `/sdlc-workflow mini` | 微小 UI 调整/文案修改 | 10 步（精简） |
 
+**推荐流程**：`proposal` → 人工审核 → `apply`，确保 AI 设计方案经过人工确认。
 
 **mini 不是"跳过流程"**：浏览器验收不精简，Gate 不跳过。影响 > 3 文件或改 API/数据模型时自动升级到 doit。
 
@@ -170,9 +178,11 @@ openclaw channel info telegram       # 获取你的账号数字 ID
 
 ```
 sdlc-workflow/              # 核心 Skill（共享流程定义）
-├── SKILL.md                # 主流程规范（364 行）
-├── references/             # 15 个详细步骤规范
+├── SKILL.md                # 主流程规范
+├── references/             # 17 个详细步骤规范
 │   ├── pipeline-overview.md
+│   ├── proposal.md           # 需求拆解命令
+│   ├── apply.md              # 需求开发命令
 │   ├── requirements-ingestion.md
 │   ├── requirements-clarifier.md
 │   ├── design-generator.md
@@ -197,13 +207,39 @@ sdlc-workflow/              # 核心 Skill（共享流程定义）
     ├── ARCHITECTURE.md.tpl
     ├── SECURITY.md.tpl
     └── CODING_GUIDELINES.md.tpl
-
-sdlc-init/                  # /sdlc-init 入口 Skill
-sdlc-doit/                  # /sdlc-doit 入口 Skill
-sdlc-doit-mini/             # /sdlc-doit-mini 入口 Skill
 ```
 
-## evn 配置项
+### 目标项目结构（init 后生成）
+
+```
+your-project/
+├── .claude/                    # Claude 上下文（统一放置）
+│   ├── CLAUDE.md
+│   ├── ARCHITECTURE.md
+│   ├── SECURITY.md
+│   ├── CODING_GUIDELINES.md
+│   ├── PROJECT_BASELINE.md     # existing project
+│   ├── EXISTING_STRUCTURE.md
+│   ├── TEST_BASELINE.md
+│   └── rules/
+│       └── workflow-rules.md
+├── docs/                       # 迭代产物
+│   └── iterations/
+│       └── YYYY-MM-DD/
+│           └── <seq>-<slug>-<type>/
+│               ├── requirements.md
+│               ├── design.md
+│               ├── tasks.md
+│               └── status.json
+├── tests/
+│   ├── unit/
+│   ├── e2e/
+│   └── reports/
+├── .env
+└── .env.example
+```
+
+## env 配置项
 
 在项目根目录的 `.env` 中配置（`/sdlc-workflow init` 会自动生成）：
 
@@ -224,6 +260,9 @@ sdlc-doit-mini/             # /sdlc-doit-mini 入口 Skill
 
 **Q: 支持 TypeScript 以外的项目吗？**
 > 支持。配置 `TEST_FRAMEWORK` 和 `LINT_TOOL` 即可适配。流程本身不依赖特定语言。
+
+**Q: proposal 和 doit 怎么选？**
+> 需要审核设计方案 → proposal + apply。完全信任 AI → doit。改 CSS、改文案 → mini。
 
 **Q: mini 和 doit 怎么选？**
 > 改 CSS、改文案、小 UI 修 → mini。改 API、改数据模型、涉及多模块 → doit。mini 过程中发现影响范围大会自动升级。

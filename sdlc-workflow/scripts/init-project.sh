@@ -5,7 +5,7 @@ PROJECT_ROOT="${1:-.}"
 SKILL_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
 # 检查是否已初始化
-if [ -f "$PROJECT_ROOT/.claude/CLAUDE.md" ] && [ -f "$PROJECT_ROOT/docs/ARCHITECTURE.md" ]; then
+if [ -f "$PROJECT_ROOT/.claude/CLAUDE.md" ] && [ -f "$PROJECT_ROOT/.claude/ARCHITECTURE.md" ]; then
   echo "✅ 项目已初始化，跳过"
   exit 0
 fi
@@ -21,7 +21,7 @@ mkdir -p "$PROJECT_ROOT/tests/unit/packages"
 mkdir -p "$PROJECT_ROOT/tests/e2e"
 mkdir -p "$PROJECT_ROOT/tests/reports"
 mkdir -p "$PROJECT_ROOT/tests/reports/playwright"
-mkdir -p "$PROJECT_ROOT/tests/reports/webmcp"
+mkdir -p "$PROJECT_ROOT/tests/reports/cdp"
 
 # 复制模板（不覆盖已存在的文件）
 copy_if_not_exists() {
@@ -30,9 +30,9 @@ copy_if_not_exists() {
 
 copy_if_not_exists "$SKILL_DIR/templates/CLAUDE.md.tpl"              "$PROJECT_ROOT/.claude/CLAUDE.md"
 copy_if_not_exists "$SKILL_DIR/templates/workflow-rules.md.tpl"      "$PROJECT_ROOT/.claude/rules/workflow-rules.md"
-copy_if_not_exists "$SKILL_DIR/templates/ARCHITECTURE.md.tpl"        "$PROJECT_ROOT/docs/ARCHITECTURE.md"
-copy_if_not_exists "$SKILL_DIR/templates/SECURITY.md.tpl"            "$PROJECT_ROOT/docs/SECURITY.md"
-copy_if_not_exists "$SKILL_DIR/templates/CODING_GUIDELINES.md.tpl"   "$PROJECT_ROOT/docs/CODING_GUIDELINES.md"
+copy_if_not_exists "$SKILL_DIR/templates/ARCHITECTURE.md.tpl"        "$PROJECT_ROOT/.claude/ARCHITECTURE.md"
+copy_if_not_exists "$SKILL_DIR/templates/SECURITY.md.tpl"            "$PROJECT_ROOT/.claude/SECURITY.md"
+copy_if_not_exists "$SKILL_DIR/templates/CODING_GUIDELINES.md.tpl"   "$PROJECT_ROOT/.claude/CODING_GUIDELINES.md"
 copy_if_not_exists "$SKILL_DIR/templates/env.example.tpl"            "$PROJECT_ROOT/.env.example"
 
 sync_env_var() {

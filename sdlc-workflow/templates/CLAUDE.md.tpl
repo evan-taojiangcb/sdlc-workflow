@@ -10,10 +10,10 @@
 <!-- 请描述项目目录结构 -->
 
 ## 开发约定
-- 参考 docs/ARCHITECTURE.md 了解架构设计
-- 参考 docs/SECURITY.md 了解安全规范
-- 参考 docs/CODING_GUIDELINES.md 了解编码规范
-- 若项目为 existing project，先参考 `docs/PROJECT_BASELINE.md`、`docs/EXISTING_STRUCTURE.md`、`docs/TEST_BASELINE.md`
+- 参考 .claude/ARCHITECTURE.md 了解架构设计
+- 参考 .claude/SECURITY.md 了解安全规范
+- 参考 .claude/CODING_GUIDELINES.md 了解编码规范
+- 若项目为 existing project，先参考 `.claude/PROJECT_BASELINE.md`、`.claude/EXISTING_STRUCTURE.md`、`.claude/TEST_BASELINE.md`
 - 使用 Conventional Commits 格式提交
 - 默认遵循 Better-T-Stack 风格目录：
   - `apps/web/src` 放 Web 前端代码
@@ -32,7 +32,8 @@ docs/iterations/
     └── <序号>-<需求名>-<变更类型>/
         ├── requirements.md    # 结构化需求
         ├── design.md          # 技术设计
-        └── tasks.md           # 任务分解
+        ├── tasks.md           # 任务分解
+        └── status.json        # proposal/apply 状态
 ```
 
 **在处理新需求时，务必先阅读 `docs/iterations/` 下的历史迭代**，了解已有的设计决策、架构变更和业务上下文，避免：
@@ -44,7 +45,9 @@ docs/iterations/
 
 ## SDLC Workflow
 本项目使用 sdlc-workflow 技能进行自动化开发。
-- 首次接入运行 `/sdlc-init`
-- 标准需求运行 `/sdlc-doit <需求>`
-- 小任务运行 `/sdlc-doit-mini <需求>`
+- 首次接入运行 `/sdlc-workflow init`
+- 需求拆解运行 `/sdlc-workflow proposal <需求>` → 等待人工审核
+- 审核通过后运行 `/sdlc-workflow apply <迭代目录>` → 开发到 PR
+- 全自动模式运行 `/sdlc-workflow doit <需求>`
+- 小任务运行 `/sdlc-workflow mini <需求>`
 - 配置见 `.env` 文件

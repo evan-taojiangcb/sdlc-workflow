@@ -3,8 +3,8 @@
 ## 输入
 
 1. `git diff`（代码变更）
-2. `docs/CODING_GUIDELINES.md`
-3. `docs/SECURITY.md`
+2. `.claude/CODING_GUIDELINES.md`
+3. `.claude/SECURITY.md`
 4. 当前 iteration 的 `tasks.md`
 
 ## 输出
@@ -35,10 +35,10 @@ codex exec --full-auto "审查以下代码变更。
 $(git diff --no-color)
 
 === CODING_GUIDELINES.md ===
-$(cat docs/CODING_GUIDELINES.md)
+$(cat .claude/CODING_GUIDELINES.md)
 
 === SECURITY.md ===
-$(cat docs/SECURITY.md)"
+$(cat .claude/SECURITY.md)"
 ```
 
 ### 2. 审查维度
@@ -233,10 +233,10 @@ while [ $round -le $max_rounds ]; do
 $DIFF
 
 === CODING_GUIDELINES.md ===
-$(cat docs/CODING_GUIDELINES.md)
+$(cat .claude/CODING_GUIDELINES.md)
 
 === SECURITY.md ===
-$(cat docs/SECURITY.md)
+$(cat .claude/SECURITY.md)
 EOF
 )"
 
@@ -303,8 +303,8 @@ done
 
 - 输入：
   - git diff
-  - docs/CODING_GUIDELINES.md
-  - docs/SECURITY.md
+  - .claude/CODING_GUIDELINES.md
+  - .claude/SECURITY.md
 - 输出：审查结果（PASS/FAIL）
 - 参考：
   - references/test-pipeline.md（下一步：测试执行）

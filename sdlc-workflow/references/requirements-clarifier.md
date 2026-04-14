@@ -32,17 +32,23 @@ function assessConfidence(requirement) {
   // 具体的技术描述 (+0.1)
   if (requirement.technicalSpec) score += 0.1;
 
-  // 明确的验收标准 (+0.1)
-  if (requirement.acceptanceCriteria) score += 0.1;
+  // 明确的验收标准，含 Given-When-Then (+0.15)
+  if (requirement.acceptanceCriteria?.length > 0) score += 0.15;
 
-  // 明确的依赖关系 (+0.1)
-  if (requirement.dependencies) score += 0.1;
+  // 明确的依赖关系 (+0.05)
+  if (requirement.dependencies) score += 0.05;
+
+  // 需求边界清晰（有明确的 In/Out of Scope）(+0.1)
+  if (requirement.scopeBoundaries) score += 0.1;
 
   // 模糊的描述 (-0.2)
   if (requirement.description.includes('...')) score -= 0.2;
 
   // 缺少边界条件描述 (-0.1)
   if (!requirement.edgeCases) score -= 0.1;
+
+  // 缺少非功能性需求 (-0.05)
+  if (!requirement.nfrs || requirement.nfrs.length === 0) score -= 0.05;
 
   return Math.max(0, Math.min(1, score));
 }
@@ -119,11 +125,43 @@ openclaw message send \
 - **标注**: [❓ 待确认: <问题>]
 - **假设**: [⚠️ 假设: <假设内容>]
 
+## 验收标准
+
+<!-- 对步骤①生成的验收标准进行置信度审查 -->
+
+### AC-001: <验收标准标题>
+- **关联需求**: R-001
+- **Given**: <前置条件>
+- **When**: <用户操作/系统触发>
+- **Then**: <期望结果>
+- **验证方式**: unit | e2e | playwright-mcp | manual
+- **置信度**: 高 [✅ 已确认]
+
+### AC-002: <验收标准标题>
+- **关联需求**: R-002
+- **Given**: <前置条件>
+- **When**: <用户操作/系统触发>
+- **Then**: <期望结果> [⚠️ 假设: <期望结果的假设>]
+- **验证方式**: e2e
+- **置信度**: 中
+
+## 需求边界
+
+<!-- 澄清阶段补充或修正步骤①的边界判断 -->
+
+### 包含 (In Scope)
+- <确认后的事项>
+
+### 不包含 (Out of Scope)
+- <澄清后明确排除的事项>
+
 ## 假设记录
 
-| ID | 需求 | 假设内容 | 状态 | 确认人 | 确认时间 |
+| ID | 关联 | 假设内容 | 状态 | 确认人 | 确认时间 |
 |----|------|----------|------|--------|----------|
-| ASM-001 | ... | ... | pending | - | - |
+| ASM-001 | R-001 | ... | pending | - | - |
+| ASM-002 | AC-002 | ... | pending | - | - |
+| ASM-003 | NFR-001 | ... | pending | - | - |
 ```
 
 ## 命令模板

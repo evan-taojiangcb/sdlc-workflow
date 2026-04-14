@@ -4,8 +4,8 @@
 
 1. `docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/design.md`
 2. `docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/tasks.md`
-3. `docs/ARCHITECTURE.md`
-4. `docs/SECURITY.md`
+3. `.claude/ARCHITECTURE.md`
+4. `.claude/SECURITY.md`
 
 ## 输出
 
@@ -27,6 +27,11 @@ codex exec --full-auto "审查以下设计文档和任务分解。
 4) 任务分解完整性（边界条件/错误处理）
 5) 数据模型合理性
 6) 目录落位是否符合 Better-T-Stack 风格 monorepo
+7) 验收标准覆盖度:
+   - requirements.md 中的每个 AC-ID 是否在 tasks.md 中被至少一个任务引用
+   - tasks.md 中的 AC 是否保留了 Given-When-Then 格式和场景维度标注
+   - 是否存在模糊的、不可验证的 AC 描述（如"正常工作"、"数据正确"）
+   - 每个 Requirement 是否至少覆盖 happy-path 和 error 两个场景维度
 
 给出 PASS/FAIL 及具体问题列表。
 
@@ -37,10 +42,10 @@ $(cat docs/iterations/$DATE/$SEQ-$SLUG-$TYPE/design.md)
 $(cat docs/iterations/$DATE/$SEQ-$SLUG-$TYPE/tasks.md)
 
 === ARCHITECTURE.md ===
-$(cat docs/ARCHITECTURE.md)
+$(cat .claude/ARCHITECTURE.md)
 
 === SECURITY.md ===
-$(cat docs/SECURITY.md)"
+$(cat .claude/SECURITY.md)"
 ```
 
 ### 2. 审查维度
@@ -53,6 +58,48 @@ $(cat docs/SECURITY.md)"
 | 完整性 | 边界条件处理 | 所有 API 有错误处理 |
 | 数据模型 | 合理性 | 无数据冗余、关系清晰 |
 | 目录结构 | workspace 落位正确 | Web 在 `apps/web`，Server 在 `apps/server`，共享逻辑在 `packages/*` |
+| **AC 覆盖度** | **需求级 AC 到任务级 AC 的映射完整性** | **见下方 AC 覆盖度检查规则** |
+
+### 2.1 AC 覆盖度检查规则（Gate 1 必做）
+
+Gate 1 必须验证 requirements.md → tasks.md 的验收标准传递链路完整，防止 AC 在任务分解过程中退化或遗漏：
+
+```
+AC_COVERAGE_CHECK:
+  1. 提取 requirements.md 中所有 AC-ID 列表 → REQ_ACS
+  2. 提取 tasks.md 中所有引用的 AC-ID 列表 → TASK_ACS
+  3. 计算未被覆盖的 AC:
+     ORPHAN_ACS = REQ_ACS - TASK_ACS
+     IF ORPHAN_ACS is not empty:
+       FAIL "以下需求级验收标准未被任何任务引用: $ORPHAN_ACS"
+
+  4. 检查每个任务的 AC 格式质量:
+     FOR EACH task_ac IN TASK_ACS:
+       IF task_ac 缺少场景维度标注 (happy-path/error/boundary/ui-state/security):
+         WARN "任务 AC 缺少场景维度: $task_ac"
+       IF task_ac 包含模糊描述 ("正常工作"|"表现正确"|"数据正确"|"功能正常"):
+         FAIL "任务 AC 描述不可验证: $task_ac — 需补充具体判定条件"
+       IF task_ac 缺少 Given-When-Then 结构:
+         WARN "任务 AC 缺少 Given-When-Then: $task_ac"
+
+  5. 检查场景维度覆盖（每个 Requirement 至少覆盖 happy-path + error）:
+     FOR EACH req_id IN REQUIREMENT_IDS:
+       DIMENSIONS = 获取 req_id 关联的所有 AC 的场景维度集合
+       IF "happy-path" NOT IN DIMENSIONS:
+         FAIL "R-$req_id 缺少 happy-path 验收标准"
+       IF "error" NOT IN DIMENSIONS:
+         WARN "R-$req_id 缺少 error 场景验收标准（建议补充）"
+```
+
+审查 prompt 中需追加以下检查指令：
+
+```
+7) 验收标准覆盖度:
+   - requirements.md 中的每个 AC-ID 是否在 tasks.md 中被至少一个任务引用
+   - tasks.md 中的 AC 是否保留了 Given-When-Then 格式
+   - 是否存在模糊的、不可验证的 AC 描述
+   - 每个 Requirement 是否至少覆盖了 happy-path 和 error 两个场景维度
+```
 
 ### 3. 循环逻辑
 
@@ -133,10 +180,11 @@ Codex 返回格式：
 set -euo pipefail
 
 ITER_DIR="docs/iterations/$DATE/$SEQ-$SLUG-$TYPE"
+REQ_FILE="$ITER_DIR/requirements.md"
 DESIGN_FILE="$ITER_DIR/design.md"
 TASKS_FILE="$ITER_DIR/tasks.md"
-ARCH_FILE="docs/ARCHITECTURE.md"
-SEC_FILE="docs/SECURITY.md"
+ARCH_FILE=".claude/ARCHITECTURE.md"
+SEC_FILE=".claude/SECURITY.md"
 
 round=1
 max_rounds=${REVIEW_MAX_ROUNDS:-1}
@@ -154,8 +202,16 @@ while [ $round -le $max_rounds ]; do
 4) 任务分解完整性（边界条件/错误处理）
 5) 数据模型合理性
 6) 目录落位是否符合 Better-T-Stack 风格 monorepo
+7) 验收标准覆盖度:
+   - requirements.md 中的每个 AC-ID 是否在 tasks.md 中被至少一个任务引用
+   - tasks.md 中的 AC 是否保留了 Given-When-Then 格式和场景维度标注
+   - 是否存在模糊的、不可验证的 AC 描述
+   - 每个 Requirement 是否至少覆盖 happy-path 和 error 两个场景维度
 
 给出 PASS/FAIL 及具体问题列表。
+
+=== requirements.md ===
+$(cat "$REQ_FILE")
 
 === design.md ===
 $(cat "$DESIGN_FILE")
@@ -242,10 +298,10 @@ round > 1（即 Gate 1 不是首轮直接通过）
 
 | 修订内容 | 同步目标 |
 |----------|----------|
-| 技术选型/架构决策变更 | `docs/ARCHITECTURE.md` 对应章节 |
-| 安全设计变更（认证/授权/加密方案） | `docs/SECURITY.md` 对应章节 |
-| 目录结构/模块落位调整 | `docs/EXISTING_STRUCTURE.md`（existing project） |
-| 新增编码约定 | `docs/CODING_GUIDELINES.md` |
+| 技术选型/架构决策变更 | `.claude/ARCHITECTURE.md` 对应章节 |
+| 安全设计变更（认证/授权/加密方案） | `.claude/SECURITY.md` 对应章节 |
+| 目录结构/模块落位调整 | `.claude/EXISTING_STRUCTURE.md`（existing project） |
+| 新增编码约定 | `.claude/CODING_GUIDELINES.md` |
 
 ### 行为规则
 
@@ -259,8 +315,8 @@ round > 1（即 Gate 1 不是首轮直接通过）
 - 输入：
   - design.md
   - tasks.md
-  - docs/ARCHITECTURE.md
-  - docs/SECURITY.md
+  - .claude/ARCHITECTURE.md
+  - .claude/SECURITY.md
 - 输出：审查结果（PASS/FAIL）+ 增量文档同步
 - 参考：
   - SKILL.md Part 4（下一步：步骤⑥ Claude Code 开发）

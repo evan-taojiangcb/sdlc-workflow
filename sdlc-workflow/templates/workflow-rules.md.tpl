@@ -17,9 +17,9 @@
 - 测试文件统一存放 tests/ 目录（unit/ + e2e/ + reports/）
 - 新需求处理前必须参考 docs/iterations/ 历史上下文
 - 若项目已存在业务代码或工程结构，则进入 existing project mode，必须先生成：
-  - `docs/PROJECT_BASELINE.md`
-  - `docs/EXISTING_STRUCTURE.md`
-  - `docs/TEST_BASELINE.md`
+  - `.claude/PROJECT_BASELINE.md`
+  - `.claude/EXISTING_STRUCTURE.md`
+  - `.claude/TEST_BASELINE.md`
 - existing project mode 下，未经 `design.md` 明确批准，不得调整既有技术架构或重排 workspace
 - 全栈项目默认遵循 Better-T-Stack 风格 monorepo：
   - `apps/web`：Web 前端应用
@@ -36,10 +36,21 @@
 - existing project 的设计文档必须引用 baseline，说明本次需求是沿用既有结构还是批准的结构调整
 - 若必须偏离 Better-T-Stack 结构，需在 `design.md` 中给出明确理由，并经过 Gate 1 审查通过
 - 单元测试必须写入 `tests/unit/`，并按 workspace 镜像落位，如 `tests/unit/web/...`、`tests/unit/server/...`、`tests/unit/packages/...`
-- E2E 测试必须写入 `tests/e2e/`，并维护“需求 ID / 场景 ID / 文件路径”的唯一映射，不得重复覆盖同一需求路径
+- E2E 测试必须写入 `tests/e2e/`，并维护"需求 ID / 场景 ID / 文件路径"的唯一映射，不得重复覆盖同一需求路径
 - `tasks.md` 是执行状态单据：任务实现完成后，必须将任务标题从 `[ ]` 回写为 `[x]`，并同步勾选真实完成的验收标准
 - 进入 `/sdlc-doit` 或 `/sdlc-doit-mini` 的测试阶段前，必须先检测项目当前具备的验证能力，不能静默跳过测试决策
 - `TEST_BOOTSTRAP_POLICY` 决定缺少测试基础设施时的行为；existing project 默认推荐 `report`
 - OpenClaw / 远程场景默认不依赖交互式 ask，优先通过报告和 TG 通知输出缺口与后续动作
-- 测试链路为 `Playwright 预检 + Playwright MCP + WebMCP 最终交互验收`
-- 最终交互测试与最终测试报告以 Playwright MCP 和 WebMCP 产物为准
+- 测试链路为 `Playwright 预检 + Playwright MCP + CDP 最终交互验收`
+- 最终交互测试与最终测试报告以 Playwright MCP 和 CDP 产物为准
+- **Artifact Gate（产物验证门禁）**：标记 test-pipeline 完成前，必须验证以下产物全部存在于磁盘：
+  - `tests/reports/playwright/<slug>-*.md`（至少一份 Playwright MCP 验收记录）
+  - `tests/reports/<slug>-acceptance-report.html`（最终验收报告 HTML）
+  - 缺少任何一项 → 禁止标记 test-pipeline 为 completed
+- **Todo 状态与磁盘产物交叉验证**：`manage_todo_list` 的 completed 状态必须与真实磁盘产物一致，不能只靠内存标记
+- **Token 耗尽保护**：若 context_usage > 70%，必须先执行 /compact 再进入 test-pipeline（步骤 ⑨）
+- **Pipeline 断点续跑**：status.json 新增 `pipeline_stage` 字段，token 耗尽时写入 `test-pipeline-incomplete`；新会话启动时读取此字段，从中断阶段继续执行而非跳过
+- 架构文档 `.claude/ARCHITECTURE.md`、安全规范 `.claude/SECURITY.md`、编码规范 `.claude/CODING_GUIDELINES.md` 与 `CLAUDE.md` 一同位于 `.claude/` 目录
+- `proposal` 命令完成后必须写入 `status.json`，标记 `phase: pending_review`
+- `apply` 命令启动前必须检查 `status.json`，仅当 `phase == approved` 时允许执行
+- `doit` 命令为全自动模式，内部执行 proposal + apply 不停顿

@@ -58,11 +58,11 @@ fi
 
 ```bash
 # 检测架构文件变更
-ARCH_CHANGES=$(git diff docs/ARCHITECTURE.md)
+ARCH_CHANGES=$(git diff .claude/ARCHITECTURE.md)
 
 if [ -n "$ARCH_CHANGES" ]; then
   # 添加架构变更记录
-  cat >> docs/ARCHITECTURE.md << 'EOF'
+  cat >> .claude/ARCHITECTURE.md << 'EOF'
 
 ## 架构变更记录
 
@@ -91,7 +91,7 @@ fi
 SEC_CHANGES=$(git diff --name-only | grep -E "(auth|security|token|encrypt)" || echo "")
 
 if [ -n "$SEC_CHANGES" ]; then
-  cat >> docs/SECURITY.md << 'EOF'
+  cat >> .claude/SECURITY.md << 'EOF'
 
 ## 安全更新记录
 
@@ -117,7 +117,7 @@ fi
 NEW_PATTERNS=$(git diff --name-only | grep -E "(pattern|strategy|convention)" || echo "")
 
 if [ -n "$NEW_PATTERNS" ]; then
-  cat >> docs/CODING_GUIDELINES.md << 'EOF'
+  cat >> .claude/CODING_GUIDELINES.md << 'EOF'
 
 ## 编码约定更新
 
@@ -198,7 +198,7 @@ echo "✅ 文档更新完成"
 
 ### 8. 目录结构同步
 
-若本次迭代改动了 workspace 边界，应同步更新 `docs/ARCHITECTURE.md`：
+若本次迭代改动了 workspace 边界，应同步更新 `.claude/ARCHITECTURE.md`：
 
 - 新增或移除了 `apps/*`
 - 新增了 `packages/*`
@@ -259,9 +259,9 @@ echo "✅ 文档更新完成"
 # TG 通知
 notify_tg "📝 文档已更新:
 📄 README.md
-📄 docs/ARCHITECTURE.md
-📄 docs/SECURITY.md
-📄 docs/CODING_GUIDELINES.md
+📄 .claude/ARCHITECTURE.md
+📄 .claude/SECURITY.md
+📄 .claude/CODING_GUIDELINES.md
 📄 .claude/CLAUDE.md (iterations 引用已更新)"
 ```
 
@@ -280,9 +280,9 @@ notify_tg "📝 文档已更新:
 ```
 📝 文档已更新:
 📄 README.md
-📄 docs/ARCHITECTURE.md
-📄 docs/SECURITY.md
-📄 docs/CODING_GUIDELINES.md
+📄 .claude/ARCHITECTURE.md
+📄 .claude/SECURITY.md
+📄 .claude/CODING_GUIDELINES.md
 📄 .claude/CLAUDE.md (iterations 引用已更新)
 ```
 
