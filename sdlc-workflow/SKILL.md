@@ -7,7 +7,7 @@ description: >-
   running automated development workflow.
   Triggers: start workflow, new feature, process requirement, run pipeline,
   SDLC, digital worker, development automation, requirements to PR.
-argument-hint: "init [配置] | proposal <需求> | apply <迭代目录> | doit <需求> | mini <小任务>"
+argument-hint: "init [配置] | proposal <需求> | apply <迭代目录> | doit <需求> | mini <小任务> | worktree <create|list|status|remove|gc>"
 homepage: https://github.com/evan-taojiangcb/sdlc-workflow
 metadata:
   openclaw:
@@ -41,34 +41,148 @@ metadata:
 - `/sdlc-workflow apply`：人工审核通过后，从 proposal 产物继续执行开发到 PR
 - `/sdlc-workflow doit`：全自动模式（内部 proposal + apply 不停顿）
 - `/sdlc-workflow mini`：小任务轻量流程
+- `/sdlc-workflow worktree create <slug> <type>`：创建并行工作区（worktree 隔离）
+- `/sdlc-workflow worktree list`：列出所有并行工作区
+- `/sdlc-workflow worktree status`：全局并行状态总览
+- `/sdlc-workflow worktree remove <seq|slug>`：移除已完成的并行工作区
+- `/sdlc-workflow worktree gc`：清理已合并的并行工作区
 
-### proposal / apply 流程（推荐）
+### proposal — 需求拆解命令
 
-```
-proposal <需求>  →  ① requirements → ② clarifier → ③ design → ④ tasks → ⑤ Gate 1
-                 →  写入 status.json (pending_review)
-                 →  📱 TG 通知: 需求拆解完成，等待审核
-                 →  ⏸ 暂停
-
-人工审阅 requirements.md / design.md / tasks.md
-
-apply <迭代目录> →  读取 status.json → ⑥ 开发 → ⑦ 测试生成 → ⑧ Gate 2 → ⑨ 测试 → ⑩ 文档 → ⑪ PR
-                 →  更新 status.json (applied)
+```bash
+/sdlc-workflow proposal <需求>
 ```
 
-### doit 全自动模式
+接受三种输入格式：纯文本、`file:///path` 本地文件、URL（自动 Playwright MCP 提取）。
 
-`doit` 内部等价于 `proposal + apply` 不停顿，适用于完全信任 AI 处理的场景。
+执行步骤 ①-⑤：
+```
+① requirements-ingestion → requirements.md
+② requirements-clarifier → 标注版 requirements.md
+③ design-generator       → design.md
+④ task-generator          → tasks.md
+⑤ design-reviewer (Gate 1)
+⑤.1 增量文档同步（若经修订）
+```
 
-注意：
+产出：
+- `docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/` 下的 requirements.md / design.md / tasks.md / status.json
+- `status.json` 标记 `phase: "pending_review"`
+- TG 通知: 📋 需求拆解完成，等待人工审核
+- ⚓ 暂停，等待 `apply`
 
-- `/sdlc-doit-mini` 是轻量流程，不是跳过流程
-- mini 模式仍必须执行：
-  - iteration 产物生成
-  - mini Gate 1
-  - validation capability detection
-  - mini Gate 2
-  - Playwright MCP + CDP 最终验收
+详细规范见 `references/proposal.md`。
+
+### apply — 需求开发命令
+
+```bash
+/sdlc-workflow apply <迭代目录>
+# 示例
+/sdlc-workflow apply docs/iterations/2026-04-16/001-user-login-feature/
+```
+
+若不指定路径，自动查找最近一个 `phase == "pending_review" | "approved"` 的迭代目录。
+
+前置检查：
+- status.json 存在且 `phase` 为 `pending_review`（视为审核通过）或 `approved`
+- `phase == applied` → 拒绝重复执行
+- `phase == rejected` → 提示修改后重新 proposal
+
+执行步骤 ⑥-⑪：
+```
+⑥ Claude Code 开发（支持 Agent Team 并行）
+⑦ test-generator
+⑧ code-reviewer (Gate 2)
+⑨ test-pipeline
+⑩ docs-updater
+⑪ git-committer → branch → commit → push → PR
+```
+
+完成后更新 `status.json` 为 `phase: "applied"`。
+
+详细规范见 `references/apply.md`。
+
+### doit — 全自动模式
+
+```bash
+/sdlc-workflow doit <需求>
+```
+
+内部等价于 `proposal + apply` 不停顿，适用于完全信任 AI 处理的场景。
+Gate 1 通过后直接继续开发，不写 `status.json`，不暂停。
+
+### mini — 小任务轻量流程
+
+```bash
+/sdlc-workflow mini <小任务>
+```
+
+轻量流程，但不是跳过流程。仍必须执行：
+- iteration 产物生成
+- mini Gate 1
+- validation capability detection
+- mini Gate 2
+- Playwright MCP + CDP 最终验收
+
+详细规范见 `references/mini-pipeline.md`。
+
+### worktree — 并行开发管理
+
+通过 Git Worktree 创建隔离的并行工作区，每个工作区独立运行 pipeline。
+
+```bash
+# 创建并行工作区
+/sdlc-workflow worktree create <slug> <type>
+# 示例
+/sdlc-workflow worktree create user-login feature
+/sdlc-workflow worktree create password-reset fix
+
+# 列出所有并行工作区
+/sdlc-workflow worktree list
+
+# 全局状态总览（聚合所有 worktree 的 status.json）
+/sdlc-workflow worktree status
+
+# 移除已完成的工作区
+/sdlc-workflow worktree remove <seq|slug>
+/sdlc-workflow worktree remove --all-merged
+
+# 检查可清理的工作区
+/sdlc-workflow worktree gc
+```
+
+**create** 行为：
+1. 从 `main` 创建分支 `{type-prefix}/{slug}-{date}-wt{seq}`
+2. `git worktree add ../wt-<seq>-<slug>-<type> -b <branch>`
+3. 在新 worktree 初始化迭代目录
+4. 自动分配端口（`PORT=3000+seq, API_PORT=4000+seq`）
+5. 注册到 `.worktrees/worktree-registry.json`
+
+**典型流程**：
+```bash
+# 1. 创建并行工作区
+sdlc-worktree.sh create user-login feature
+cd ../wt-001-user-login-feature
+pnpm install
+
+# 2. 在 worktree 中跑 pipeline
+/sdlc-workflow proposal "用户登录功能"
+# → 审核通过后
+/sdlc-workflow apply docs/iterations/2026-04-16/001-user-login-feature/
+
+# 3. 同时在另一个 worktree 开发别的需求
+cd ../main-repo
+sdlc-worktree.sh create payment fix
+cd ../wt-002-payment-fix
+/sdlc-workflow doit "支付修复"
+
+# 4. 完成后清理
+cd ../main-repo
+sdlc-worktree.sh remove 001
+```
+
+详细规范见 `references/parallel-dev.md`。
+脚本位置：`scripts/sdlc-worktree.sh`。
 
 ## 项目初始化
 
@@ -562,12 +676,26 @@ IF any failure:
 
 #### ⑪ git-committer
 ```bash
-git checkout -b ${GIT_BRANCH_PREFIX}<slug>-YYYY-MM-DD
-git add -A
-git commit -m "<type>(scope): <摘要>"
-git push origin ${GIT_BRANCH_PREFIX}<slug>-YYYY-MM-DD
-gh pr create --title "<type>(scope): <摘要>" --body "..."
-PR_URL=$(gh pr view --json url --jq .url)
+# 检测是否在 worktree 中
+IS_WORKTREE=$(git rev-parse --git-common-dir 2>/dev/null | grep -q '/worktrees/' && echo 1 || echo 0)
+
+IF IS_WORKTREE:
+  # Worktree 模式：分支已在 worktree create 时创建，直接使用
+  CURRENT_BRANCH=$(git branch --show-current)
+  git add -A
+  git commit -m "<type>(scope): <摘要>"
+  git push origin "$CURRENT_BRANCH"
+  gh pr create --base main --title "<type>(scope): <摘要>" --body "..."
+  PR_URL=$(gh pr view --json url --jq .url)
+  # 更新注册表中的 pr_url（若注册表可达）
+ELSE:
+  # 传统模式：创建新分支
+  git checkout -b ${GIT_BRANCH_PREFIX}<slug>-YYYY-MM-DD
+  git add -A
+  git commit -m "<type>(scope): <摘要>"
+  git push origin ${GIT_BRANCH_PREFIX}<slug>-YYYY-MM-DD
+  gh pr create --title "<type>(scope): <摘要>" --body "..."
+  PR_URL=$(gh pr view --json url --jq .url)
 ```
 
 #### ⑪.1 Apply 状态更新（仅 apply 命令）
@@ -637,3 +765,7 @@ openclaw message send --channel telegram --target "$TG_USERNAME" --message "$MSG
 18. **proposal 状态管理**：proposal 完成后必须写入 status.json；apply 启动前必须校验 status.json
 19. **上下文管理**：Pipeline 步骤间检测上下文占用，超过 80% 时执行 `/compact`。关键检查点：Gate 1 通过后进入开发前（⑤→⑥）、Gate 2 通过后进入测试前（⑧→⑨）、测试修复 retry 前（⑨ 内）。compact 前必须确保当前步骤产物已写入文件（requirements.md / design.md / tasks.md / status.json / git add），compact 后显式重新加载迭代目录产物 + .claude/ 基线文档恢复工作上下文
 20. **Agent Team 并行**：在步骤 ⑦ test-generator（单元测试 + E2E 可并行生成）、⑨ test-pipeline Stage 2-3（unit + Playwright 预检可并行）、⑩ docs-updater（多文档可并行更新）使用 Agent Team 分发子任务以加速执行；Gate 审查（⑤⑧）和顺序依赖步骤（①→②→③→④）不适合并行
+21. **Worktree 并行开发**：通过 `worktree create` 创建隔离工作区，每个 worktree 独立运行 pipeline；详见 `references/parallel-dev.md`
+22. **Worktree 端口隔离**：并行工作区的 dev server 端口按 `PORT=3000+seq, API_PORT=4000+seq` 分配，避免冲突
+23. **Worktree 注册表**：`.worktrees/worktree-registry.json` 记录所有并行工作区元数据，`git-committer` 完成后更新 `pr_url`
+24. **Worktree 文件冲突检测**：创建并行工作区前检查目标文件与已有工作区的交集，存在冲突时警告
