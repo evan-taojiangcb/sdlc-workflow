@@ -68,8 +68,9 @@ wt-<seq>-<slug>-<type>/
 1. 从 `main` 生成分支名和 slug
 2. `git worktree add ../wt-<seq>-<slug>-<type> -b <branch>`
 3. 在新 worktree 内初始化迭代目录
-4. 注册到 `.worktrees/worktree-registry.json`
-5. 输出：worktree 路径 + 分支名
+4. 复制主仓库所有 `.env*` 文件到新 worktree（`.env`、`.env.local`、`.env.development` 等不受 git 追踪），并覆写 `PORT`/`API_PORT` 实现端口隔离
+5. 注册到 `.worktrees/worktree-registry.json`
+6. 输出：worktree 路径 + 分支名
 
 ### 3.2 `worktree list` — 查看并行工作区状态
 

@@ -133,20 +133,32 @@ cmd_create() {
   # 在 worktree 中创建迭代目录
   mkdir -p "$wt_path/$iter_dir"
 
-  # 写入 worktree 专属 .env (端口隔离)
+  # 复制所有 .env* 文件（这些文件在 .gitignore 中，不会被 git worktree 带过去）
+  local env_copied=0
+  for env_file in "$PROJECT_ROOT"/.env*; do
+    [ -f "$env_file" ] || continue
+    local basename
+    basename=$(basename "$env_file")
+    # 跳过 .env.example / .env.*.example（模板文件已受版本控制）
+    case "$basename" in
+      *.example|*.tpl|*.template) continue ;;
+    esac
+    cp "$env_file" "$wt_path/$basename"
+    env_copied=$((env_copied + 1))
+  done
+  # 若主仓库无 .env 但有 .env.example，用它生成 .env
+  if [ ! -f "$wt_path/.env" ] && [ -f "$PROJECT_ROOT/.env.example" ]; then
+    cp "$PROJECT_ROOT/.env.example" "$wt_path/.env"
+    env_copied=$((env_copied + 1))
+  fi
+  echo "   📄 已复制 $env_copied 个 .env* 文件到 worktree"
+
+  # 端口隔离：覆写 .env 中的 PORT/API_PORT
   local seq_num=$((10#$seq))
   local port=$((3000 + seq_num))
   local api_port=$((4000 + seq_num))
 
-  if [ -f "$PROJECT_ROOT/.env" ]; then
-    cp "$PROJECT_ROOT/.env" "$wt_path/.env"
-  elif [ -f "$PROJECT_ROOT/.env.example" ]; then
-    cp "$PROJECT_ROOT/.env.example" "$wt_path/.env"
-  fi
-
-  # 追加/覆盖端口配置
   if [ -f "$wt_path/.env" ]; then
-    # 移除已有 PORT/API_PORT 行，再追加
     grep -v "^PORT=" "$wt_path/.env" | grep -v "^API_PORT=" > "$wt_path/.env.tmp" || true
     mv "$wt_path/.env.tmp" "$wt_path/.env"
     echo "PORT=$port" >> "$wt_path/.env"
