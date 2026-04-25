@@ -21,12 +21,13 @@
 → 代码实现 → 测试生成 → Gate 2 审查 → 测试执行
 → 文档更新 → Git 提交 + PR → TG 通知
 
-五条线:
+六条线:
 init（初始化）：采集项目信息或初始化项目 → 生成baseline → 锁定结构
 proposal（需求拆解）：需求 → 澄清 → 设计 → 任务 → Gate1 → 暂停等人工审核
 apply（需求开发）：读取 proposal 产物 → 开发 → 测试 → Gate2 → 验收 → 文档 → PR
 doit（全自动）：proposal + apply 不停顿
 mini（精简流程）：需求 → 精简设计 → MiniGate1 → 实现 → MiniGate2 → 验收 → PR
+worktree（并行开发）：基于 git worktree 隔离多个并行 pipeline，多需求/多 Agent 同时跑互不干扰
 ```
 
 **核心特点**：
@@ -40,6 +41,7 @@ mini（精简流程）：需求 → 精简设计 → MiniGate1 → 实现 → Mi
 - 📱 **15 个 TG 通知点**：每个关键环节都发 Telegram，人不在电脑前也能追踪
 - 🛡️ **Existing Project 安全**：自动采集项目信息生成 baseline，防止 AI 乱改你的项目结构
 - 🧪 **证据链验收**：Playwright MCP + CDP 做最终验收以及录屏截图和验收报告，不靠"看一眼和模型说:我测完了验收通过"
+- 🌲 **Worktree 并行开发**：基于 git worktree 隔离多条 pipeline，多需求 / 多 Agent 同时跑、自动分配端口、自动复制 `.env*`，互不干扰
 
 ## 为什么需要它
 你已经在用 Claude Code / Cursor / Codex 写代码了。但你大概率遇到过这些场面：
@@ -53,6 +55,7 @@ mini（精简流程）：需求 → 精简设计 → MiniGate1 → 实现 → Mi
 | 审查全靠自己看 diff | 通常看不过来就跳过了 | Codex CLI 自动审查，Gate 失败就停 |
 | 做了什么改动，过两天就忘 | 翻 Git log 猜 | 每轮需求生成独立 iteration 目录 |
 | 小改动不想跑全流程 | 直接裸改，没记录 | mini 模式：精简流程，但仍有 Gate 和验收以及变更留底和TG通知 |
+| 多需求并行卡在串行 pipeline | 一个一个排队，hotfix 也得等 | worktree 模式：每个需求独立工作树 + 独立分支 + 端口隔离 |
 
 **一句话总结**：这是一套用 **工程 contract** 而非 prompt 技巧来约束 AI 行为的 SDLC 系统。
 
@@ -69,6 +72,7 @@ mini（精简流程）：需求 → 精简设计 → MiniGate1 → 实现 → Mi
 | 测试验收 | ⚠️ 口述"已测试" | ⚠️ 口述"已测试" | ✅ 浏览器交互证据 |
 | 迭代可恢复 | ❌ 依赖聊天记录 | ❌ 依赖聊天记录 | ✅ Git + iteration 目录 |
 | 老项目安全接入 | ❌ 经常被重建 | ⚠️ 看运气 | ✅ intake → baseline → 约束 |
+| 并行开发隔离 | ❌ 单仓串行 | ❌ 单仓串行 | ✅ git worktree + 端口隔离 + 注册表 |
 | 远程运行 | ⚠️ 部分支持 | ❌ 桌面端 | ✅ OpenClaw / TG 原生支持 |
 
 ---
@@ -152,12 +156,16 @@ openclaw channel info telegram       # 获取你的账号数字 ID
 
 # 5. 或者跑一个小任务
 /sdlc-workflow mini 把按钮颜色改成蓝色
+
+# 6. 并行开发：在隔离的 worktree 里同时跑多个需求
+/sdlc-workflow worktree create user-login feature
+cd ../wt-001-user-login-feature && /sdlc-workflow doit "用户登录功能"
 ```
 
 > **前置条件**：使用 TG 通知前需先配置 OpenClaw CLI（`npm i -g openclaw && openclaw auth login && openclaw channel connect telegram`），获取你的 Telegram 账号数字 ID 或 chat_id。
 
 ---
-## 五种模式
+## 六种模式
 
 | 命令 | 适用场景 | 说明 |
 |------|---------|------|
@@ -166,10 +174,50 @@ openclaw channel info telegram       # 获取你的账号数字 ID
 | `/sdlc-workflow apply` | 审核通过后执行开发 → PR | 步骤 ⑥-⑪，从 proposal 产物继续 |
 | `/sdlc-workflow doit` | 正常 feature/fix，完整 SDLC 流程（不停顿） | 12 步全自动 |
 | `/sdlc-workflow mini` | 微小 UI 调整/文案修改 | 10 步（精简） |
+| `/sdlc-workflow worktree` | 多需求并行 / 多 Agent 协作 / 紧急修复打断 | 子命令：create / list / status / remove / gc |
 
 **推荐流程**：`proposal` → 人工审核 → `apply`，确保 AI 设计方案经过人工确认。
 
 **mini 不是"跳过流程"**：浏览器验收不精简，Gate 不跳过。影响 > 3 文件或改 API/数据模型时自动升级到 doit。
+
+**worktree 不是"另开一个流程"**：worktree 只负责隔离工作区与分支，pipeline 仍然走 init/proposal/apply/doit/mini，只是各自跑在独立目录里。
+
+---
+
+## 并行开发（Worktree 模式）
+
+基于 `git worktree` 让一个仓库同时存在多个工作区，每个工作区跑独立 pipeline。
+
+```bash
+# 创建并行工作区（自动分配 seq、分支、端口、复制 .env*）
+/sdlc-workflow worktree create user-login feature
+/sdlc-workflow worktree create payment-bug fix
+
+# 进入工作区跑正常 pipeline
+cd ../wt-001-user-login-feature
+/sdlc-workflow proposal "用户登录功能"
+
+# 全局总览（聚合所有 worktree 的 status.json）
+/sdlc-workflow worktree status
+
+# 列出注册表中的 worktree
+/sdlc-workflow worktree list
+
+# PR 合并后清理
+/sdlc-workflow worktree remove 001
+/sdlc-workflow worktree gc           # 自动清理已合并的工作区
+```
+
+| 资源 | 隔离方式 |
+|------|---------|
+| 工作目录 | `../wt-<seq>-<slug>-<type>/`，主仓的兄弟目录 |
+| 分支 | `{GIT_BRANCH_PREFIX}{slug}-{date}-wt{seq}`，git 强制独占 |
+| dev server 端口 | `PORT=3000+seq, API_PORT=4000+seq` 自动写入 `.env` |
+| `.env*` | 自动从主仓复制（`.env`、`.env.local` 等不受 git 追踪的文件） |
+| 注册表 | `.worktrees/worktree-registry.json`（提交到 main，作为多 Agent 协调总线） |
+| `node_modules` | 每个 worktree 独立安装（共享 `.git/` 对象库） |
+
+详细规范见 [sdlc-workflow/references/parallel-dev.md](sdlc-workflow/references/parallel-dev.md)，脚本见 [sdlc-workflow/scripts/sdlc-worktree.sh](sdlc-workflow/scripts/sdlc-worktree.sh)。
 
 
 ---
@@ -179,10 +227,11 @@ openclaw channel info telegram       # 获取你的账号数字 ID
 ```
 sdlc-workflow/              # 核心 Skill（共享流程定义）
 ├── SKILL.md                # 主流程规范
-├── references/             # 17 个详细步骤规范
+├── references/             # 18 个详细步骤规范
 │   ├── pipeline-overview.md
 │   ├── proposal.md           # 需求拆解命令
 │   ├── apply.md              # 需求开发命令
+│   ├── parallel-dev.md       # worktree 并行开发规范
 │   ├── requirements-ingestion.md
 │   ├── requirements-clarifier.md
 │   ├── design-generator.md
@@ -197,8 +246,9 @@ sdlc-workflow/              # 核心 Skill（共享流程定义）
 │   ├── mini-pipeline.md       # mini 模式流程
 │   ├── micro-change-mode.md
 │   └── existing-project-intake.md
-├── scripts/                # 初始化脚本
+├── scripts/                # 初始化和并行开发脚本
 │   ├── init-project.sh
+│   ├── sdlc-worktree.sh       # worktree create/list/status/remove/gc
 │   └── update-workflow-config.sh
 └── templates/              # 项目模板文件
     ├── CLAUDE.md.tpl
@@ -235,9 +285,13 @@ your-project/
 │   ├── unit/
 │   ├── e2e/
 │   └── reports/
+├── .worktrees/                 # worktree 注册表（启用并行开发后生成）
+│   └── worktree-registry.json
 ├── .env
 └── .env.example
 ```
+
+启用 worktree 后，主仓的同级目录会出现 `wt-<seq>-<slug>-<type>/` 兄弟目录，每个工作区结构与主仓一致，但分支、端口、`.env`、`docs/iterations/` 互相独立。
 
 ## env 配置项
 
@@ -270,10 +324,17 @@ your-project/
 **Q: 会话中断了怎么办？**
 > 下一个 session 读取 `docs/iterations/` 和 Git 状态即可续跑。所有中间产物都已持久化在文件系统里。
 
+**Q: 多个需求要并行开发怎么办？**
+> 用 `worktree create` 给每个需求开独立工作区，分支、端口、`.env` 都自动隔离。多个 Claude Code 会话可以同时跑各自的 pipeline 互不干扰，PR 合并后用 `worktree remove` 或 `worktree gc` 清理。
+
+**Q: worktree 和直接 `git worktree add` 有什么区别？**
+> `sdlc-workflow worktree` 在 git 原生能力上多做了：自动 seq/slug/分支命名、自动复制 `.env*`（不受 git 追踪）、自动写入隔离端口（`PORT=3000+seq`）、维护注册表用于多 Agent 协调、与 iteration 目录命名对齐。
+
 ---
 
 ## 实践工程案例
-https://github.com/evan-taojiangcb/btc-trade/pulls
+- https://github.com/evan-taojiangcb/btc-trade/pulls
+- [梦幻电影院-ERC20](https://movie.coinbasis.org/) | 工程代码: https://github.com/evan-taojiangcb/dream-castle-cinema  
 
 ---
 

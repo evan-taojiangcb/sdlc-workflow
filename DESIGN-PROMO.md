@@ -19,6 +19,7 @@
 | 审查全靠自己看 diff | 通常看不过来就跳过了 | Codex CLI 自动审查，Gate 失败就停 |
 | 做了什么改动，过两天就忘 | 翻 Git log 猜 | 每轮需求生成独立 iteration 目录，含 requirements/design/tasks |
 | 小改动不想跑全流程 | 直接裸改，没记录 | mini 模式：精简流程，但仍有 Gate 和验收 |
+| 多需求 / 多 Agent 想并行 | 共用一个工作目录互相踩 | worktree 模式：git worktree 隔离 + 自动端口 + 注册表协调 |
 
 **一句话总结**：这是一套用**工程 contract** 而非 prompt 技巧来约束 AI 行为的 SDLC 系统。
 
@@ -63,9 +64,14 @@ TG/Telegram 通知你结果                           ← 有通知
 
 # 小任务：走精简流程，但不跳过 Gate
 /sdlc-workflow mini 把首页背景改成黑色
+
+# 并行开发：用 git worktree 隔离多个 pipeline
+/sdlc-workflow worktree create user-login feature
+/sdlc-workflow worktree list
+/sdlc-workflow worktree gc
 ```
 
-五种模式，一个入口。推荐流程：`proposal` → 人工审核 → `apply`。
+六种模式，一个入口。推荐流程：`proposal` → 人工审核 → `apply`。worktree 不是另一种 pipeline，而是为前 5 种模式提供隔离的并行执行环境。
 
 > **前置条件**：使用 TG 通知前需先配置 OpenClaw CLI（`npm i -g openclaw && openclaw auth login && openclaw channel connect telegram`），获取你的 Telegram 账号数字 ID 或 chat_id。
 
@@ -138,6 +144,21 @@ docs/iterations/
 ```
 
 会话中断后，依赖 Git + iteration 产物可以让下一个 session 续跑。
+
+### 6. 并行开发用 worktree 隔离，而不是分布式调度
+
+真实研发同时存在多需求、紧急 hotfix、多 Agent 协作。它们的冲突点是同一个工作目录、同一个 `.env`、同一个 dev server 端口——而不是分支本身。所以系统直接在 `git worktree` 上构建并行能力：
+
+```
+git worktree add ../wt-001-user-login-feature
+  ├── 自动 seq/slug/分支命名（与 iteration 目录对齐）
+  ├── 自动复制主仓 .env / .env.local 等不受 git 追踪的配置
+  ├── 自动改写 PORT=3000+seq, API_PORT=4000+seq
+  ├── 写入 .worktrees/worktree-registry.json（多 Agent 协调总线）
+  └── 后续 proposal / apply / doit / mini 在 worktree 内独立运行
+```
+
+合并后 `worktree remove` 或 `worktree gc` 一键清理。Git 对象库共享，磁盘占用主要是 `node_modules`，不是代码本身。
 
 ---
 
@@ -255,9 +276,9 @@ flowchart TD
 │                                                       │
 │  sdlc-workflow/                                       │
 │  ├── SKILL.md              入口编排                    │
-│  ├── references/           15 个步骤详细规范            │
+│  ├── references/           18 个步骤详细规范            │
 │  ├── templates/            6 个初始化模板               │
-│  └── scripts/              init + config 脚本          │
+│  └── scripts/              init + config + worktree 脚本│
 │                                                       │
 └───────────────────┬───────────────────────────────────┘
                     │ 初始化 / 运行时加载
@@ -418,6 +439,7 @@ git log --oneline -1         # 自动提交记录
 | 测试验收 | ⚠️ 口述"已测试" | ⚠️ 口述"已测试" | ✅ 浏览器交互证据 |
 | 迭代可恢复 | ❌ 依赖聊天记录 | ❌ 依赖聊天记录 | ✅ Git + iteration 目录 |
 | 老项目安全接入 | ❌ 经常被重建 | ⚠️ 看运气 | ✅ intake → baseline → 约束 |
+| 并行开发隔离 | ❌ 单仓串行 | ❌ 单仓串行 | ✅ git worktree + 端口隔离 + 注册表 |
 | 远程运行 | ⚠️ 部分支持 | ❌ 桌面端 | ✅ OpenClaw / TG 原生支持 |
 | 变更记录 | ⚠️ Git 但无结构文档 | ⚠️ Git 但无结构文档 | ✅ requirements + design + tasks + status.json |
 
@@ -450,6 +472,7 @@ sdlc-workflow/
 │   ├── pipeline-overview.md         #   完整流程概览
 │   ├── proposal.md                  #   需求拆解命令
 │   ├── apply.md                     #   需求开发命令
+│   ├── parallel-dev.md              #   worktree 并行开发规范
 │   ├── existing-project-intake.md   #   老项目接入
 │   ├── micro-change-mode.md         #   微变更判定
 │   ├── mini-pipeline.md             #   mini 流程
@@ -473,6 +496,7 @@ sdlc-workflow/
 │   └── env.example.tpl
 ├── scripts/
 │   ├── init-project.sh              # 项目初始化
+│   ├── sdlc-worktree.sh             # worktree create/list/status/remove/gc
 │   └── update-workflow-config.sh    # 配置更新
 ├── README.md
 └── LICENSE
@@ -484,7 +508,7 @@ sdlc-workflow/
 
 ### 当前已实现 ✅
 
-- [x] 单入口多模式（init / proposal / apply / doit / mini）
+- [x] 单入口多模式（init / proposal / apply / doit / mini / worktree）
 - [x] Fresh + Existing project 双轨识别
 - [x] 12 步标准流程完整编排
 - [x] 双模型 Gate（Claude 生成 + Codex 审查）
@@ -494,6 +518,7 @@ sdlc-workflow/
 - [x] 浏览器验收作为最终通过标准
 - [x] TG/OpenClaw 远程友好设计
 - [x] 配置热读取 + 合理默认值
+- [x] Git Worktree 并行开发隔离（自动分支 / 端口 / `.env*` 复制 / 注册表）
 
 ### 短期计划 🔜
 
@@ -531,6 +556,9 @@ sdlc-workflow/
 
 **Q: 会话中断了怎么办？**
 > 下一个 session 读取 `docs/iterations/` 和 Git 状态即可续跑。所有中间产物都已持久化在文件系统里。
+
+**Q: 多需求并行/紧急 hotfix 打断怎么办？**
+> 用 `worktree create` 给每个需求开独立工作区，分支 / 端口 / `.env` 自动隔离，注册表 (`.worktrees/worktree-registry.json`) 同步多 Agent 状态；PR 合并后 `worktree remove` 或 `worktree gc` 一键回收。
 
 ---
 
