@@ -521,11 +521,13 @@ FOR layer IN LAYERS:
           prompt = """
             你是 SDLC 开发子 Agent，负责实现单个任务。
             任务: {task}
+            角色定位（Track）: {task.track}（请遵循该端的代码风格、依赖偏好、测试惯例）
             设计文档: {design.md 相关章节}
             架构约束: {ARCHITECTURE.md}
             编码规范: {CODING_GUIDELINES.md}
             规则:
             - 只修改任务 Target Files 范围内的文件
+            - 修改文件路径必须落在 Track 对应范围内（frontend→apps/web, backend→apps/server, shared→packages/{config,env,auth}, infra→db/migrations|root configs, test→tests/）
             - 不得修改其他任务的目标文件
             - 完成后报告: 修改的文件列表 + 验收标准完成情况
           """

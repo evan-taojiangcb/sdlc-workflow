@@ -274,6 +274,7 @@ your-project/
 
 ## 实践工程案例
 https://github.com/evan-taojiangcb/btc-trade/pulls
+[梦幻电影院-ERC20](https://movie.coinbasis.org/) | 工程代码: https://github.com/evan-taojiangcb/dream-castle-cinema  
 
 ---
 

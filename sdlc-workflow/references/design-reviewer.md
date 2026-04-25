@@ -32,6 +32,11 @@ codex exec --full-auto "审查以下设计文档和任务分解。
    - tasks.md 中的 AC 是否保留了 Given-When-Then 格式和场景维度标注
    - 是否存在模糊的、不可验证的 AC 描述（如"正常工作"、"数据正确"）
    - 每个 Requirement 是否至少覆盖 happy-path 和 error 两个场景维度
+8) Track 一致性:
+   - 每个任务是否声明了 Track 字段（frontend / backend / shared / infra / test）
+   - Track 取值是否与"目标文件"路径自洽
+   - test Track 任务是否仅出现在 Phase 3
+   - "任务 Track 汇总"表是否覆盖所有任务且总数与 Phase 总览一致
 
 给出 PASS/FAIL 及具体问题列表。
 
@@ -59,6 +64,7 @@ $(cat .claude/SECURITY.md)"
 | 数据模型 | 合理性 | 无数据冗余、关系清晰 |
 | 目录结构 | workspace 落位正确 | Web 在 `apps/web`，Server 在 `apps/server`，共享逻辑在 `packages/*` |
 | **AC 覆盖度** | **需求级 AC 到任务级 AC 的映射完整性** | **见下方 AC 覆盖度检查规则** |
+| **Track 一致性** | **每个任务声明 Track 且与目标文件路径自洽** | **见下方 Track 一致性检查规则** |
 
 ### 2.1 AC 覆盖度检查规则（Gate 1 必做）
 
@@ -99,6 +105,60 @@ AC_COVERAGE_CHECK:
    - tasks.md 中的 AC 是否保留了 Given-When-Then 格式
    - 是否存在模糊的、不可验证的 AC 描述
    - 每个 Requirement 是否至少覆盖了 happy-path 和 error 两个场景维度
+```
+
+### 2.2 Track 一致性检查规则（Gate 1 必做）
+
+Gate 1 必须验证每个任务都声明了 Track 字段、Track 与目标文件路径自洽、且 `tasks.md` 顶部的"任务 Track 汇总"表与各任务实际 Track 一致：
+
+```
+TRACK_CONSISTENCY_CHECK:
+  TRACK_PATH_RULES = {
+    "frontend": ["apps/web/", "apps/native/", "packages/ui/"],
+    "backend":  ["apps/server/", "packages/api/", "packages/db/"],
+    "shared":   ["packages/config/", "packages/env/", "packages/auth/"],
+    "infra":    ["db/migrations/", ".github/workflows/", "<root-config-files>"],
+    "test":     ["tests/unit/", "tests/e2e/"]
+  }
+
+  1. 字段存在性:
+     FOR EACH task IN tasks.md:
+       IF "Track" NOT IN task.fields:
+         FAIL "$task.id 缺少 Track 字段"
+       IF task.track NOT IN ["frontend","backend","shared","infra","test"]:
+         FAIL "$task.id Track 取值非法: $task.track"
+
+  2. Track ↔ 目标文件 自洽性:
+     FOR EACH task IN tasks.md:
+       allowed_prefixes = TRACK_PATH_RULES[task.track]
+       FOR EACH file IN task.target_files:
+         IF NOT any(file.startswith(p) for p in allowed_prefixes):
+           # 罕见跨 Track 情况：允许"主要修改面"判定，但需任务描述里说明
+           IF "主要修改面" NOT IN task.description:
+             FAIL "$task.id Track=$track 与目标文件 $file 不自洽"
+
+  3. test Track 限制:
+     FOR EACH task WITH track == "test":
+       IF task.phase != "Phase 3":
+         FAIL "$task.id 是 test Track，必须落在 Phase 3"
+
+  4. Track 汇总表一致性:
+     SUMMARY_TABLE = parse_track_summary(tasks.md)  # "任务 Track 汇总" 表
+     ACTUAL = group_tasks_by_track(tasks.md)        # 从各任务 Track 字段聚合
+     IF SUMMARY_TABLE.task_ids != ACTUAL.task_ids:
+       FAIL "Track 汇总表与实际任务 Track 字段不一致: $diff"
+     IF sum(SUMMARY_TABLE.counts) != total_tasks:
+       FAIL "Track 汇总表任务总数 != Phase 总览任务总数"
+```
+
+审查 prompt 中需追加以下检查指令：
+
+```
+8) Track 一致性:
+   - 每个任务是否声明了 Track 字段（frontend / backend / shared / infra / test）
+   - Track 取值是否与"目标文件"路径自洽
+   - test Track 任务是否仅出现在 Phase 3
+   - "任务 Track 汇总"表是否覆盖所有任务且总数与 Phase 总览一致
 ```
 
 ### 3. 循环逻辑
@@ -207,6 +267,11 @@ while [ $round -le $max_rounds ]; do
    - tasks.md 中的 AC 是否保留了 Given-When-Then 格式和场景维度标注
    - 是否存在模糊的、不可验证的 AC 描述
    - 每个 Requirement 是否至少覆盖 happy-path 和 error 两个场景维度
+8) Track 一致性:
+   - 每个任务是否声明了 Track 字段（frontend / backend / shared / infra / test）
+   - Track 取值是否与"目标文件"路径自洽
+   - test Track 任务是否仅出现在 Phase 3
+   - "任务 Track 汇总"表是否覆盖所有任务且总数与 Phase 总览一致
 
 给出 PASS/FAIL 及具体问题列表。
 
