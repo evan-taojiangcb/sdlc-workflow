@@ -25,6 +25,8 @@
 7. 每个任务必须绑定 Requirement IDs，便于后续测试映射
 8. 每个任务必须带显式完成状态，供执行阶段回写
 9. 禁止验收标准退化为模糊 checkbox（如 "功能正常"、"数据正确"），必须含可验证的具体值或条件
+10. 每个任务必须显式声明 Track（frontend / backend / shared / infra / test），且与目标文件路径自洽；跨端任务必须拆为多个任务，禁止一个任务跨 Track
+11. test Track 仅出现在 Phase 3；Phase 1/2 的实现任务自带的单元测试不算 test Track
 ```
 
 ### 2. 任务结构
@@ -39,6 +41,8 @@
 **目标文件**:
 - apps/server/src/routes/auth/login.ts
 - packages/auth/src/index.ts
+
+**Track**: backend
 
 **Requirement IDs**:
 - R-001
@@ -62,6 +66,23 @@
 
 **预估工时**: 2h
 ```
+
+### 2.0 Track 取值与归属规则
+
+| Track      | 含义                       | 典型目标文件路径                                                     |
+|------------|----------------------------|----------------------------------------------------------------------|
+| `frontend` | Web/Native 前端实现        | `apps/web/**`, `apps/native/**`, `packages/ui/**`                    |
+| `backend`  | 后端 API / Worker / 数据层 | `apps/server/**`, `packages/api/**`, `packages/db/**`                |
+| `shared`   | 跨端共享包                 | `packages/config/**`, `packages/env/**`, `packages/auth/**`          |
+| `infra`    | 基础设施（迁移、配置、CI） | `db/migrations/**`, 根目录配置文件, `.github/workflows/**`           |
+| `test`     | 独立测试任务（限 Phase 3） | `tests/unit/**`, `tests/e2e/**`                                      |
+
+**Track 归属规则**：
+
+1. 每个任务**只能**属于一个 Track；若需求横跨前后端，**必须在拆任务阶段**就拆为多个任务（如 T-003 后端登录 API + T-005 前端登录表单），不允许一个任务同时修改 `apps/web/*` 和 `apps/server/*`
+2. Track 与 `目标文件` 路径必须自洽（Gate 1 校验）：所有 `目标文件` 必须落在对应 Track 的典型路径范围内
+3. `test` Track 仅允许出现在 Phase 3；Phase 1/2 实现任务里随手写的单元测试**不计**为 test Track（仍计入该实现任务自身）
+4. 如果某任务的目标文件确实跨多个候选 Track（罕见，如同时改 `packages/config` 和 `apps/server`），按"主要修改面"判定，并在任务描述里说明
 
 ### 2.1 验收标准编写规则
 
@@ -125,6 +146,25 @@
 | T-006 | E2E 测试 | L | 4h |
 ```
 
+### 4.1 Track 汇总（按角色视图）
+
+Phase 分组之外，`tasks.md` 必须再提供一个按 Track 聚合的视图，便于按角色阅读和分派：
+
+```markdown
+## 任务 Track 汇总（按角色视图）
+
+| Track      | 任务数 | 总工时 | 任务 ID                          |
+|------------|--------|--------|----------------------------------|
+| frontend   | 2      | 5h     | T-007, T-008                     |
+| backend    | 3      | 7h     | T-003, T-004, T-006              |
+| shared     | 1      | 1h     | T-002                            |
+| infra      | 1      | 2h     | T-001                            |
+| test       | 2      | 8h     | T-009, T-010                     |
+| **合计**   | **9**  | **23h**|                                  |
+```
+
+> 该表的"任务 ID"列必须覆盖 tasks.md 中所有任务 ID，且任务总数与 Phase 总览表一致——Gate 1 会交叉校验。
+
 ### 5. 依赖关系图
 
 ````markdown
@@ -164,6 +204,17 @@ T-002 ──┘           │
 | Phase 3: 完善 | 2 | 8h |
 | **合计** | **7** | **18h** |
 
+## 任务 Track 汇总（按角色视图）
+
+| Track      | 任务数 | 总工时 | 任务 ID                          |
+|------------|--------|--------|----------------------------------|
+| frontend   | 0      | 0h     | —                                |
+| backend    | 4      | 8h     | T-002, T-003, T-004, T-007       |
+| shared     | 0      | 0h     | —                                |
+| infra      | 1      | 2h     | T-001                            |
+| test       | 2      | 8h     | T-005, T-006                     |
+| **合计**   | **7**  | **18h**|                                  |
+
 ## Phase 1: 基础设施
 
 ### [ ] T-001: 数据库迁移
@@ -173,6 +224,8 @@ T-002 ──┘           │
 **目标文件**:
 - db/migrations/001_create_users.sql
 - db/migrations/002_create_sessions.sql
+
+**Track**: infra
 
 **Requirement IDs**:
 - R-001
@@ -197,6 +250,8 @@ T-002 ──┘           │
 **目标文件**:
 - apps/server/src/lib/redis.ts
 - packages/config/src/index.ts
+
+**Track**: backend
 
 **Requirement IDs**:
 - R-001
@@ -224,6 +279,8 @@ T-002 ──┘           │
 - apps/server/src/routes/auth/login.ts
 - apps/server/src/services/auth-service.ts
 - packages/auth/src/session.ts
+
+**Track**: backend
 
 **Requirement IDs**:
 - R-002
@@ -253,6 +310,8 @@ T-002 ──┘           │
 - tests/unit/auth.test.ts
 - tests/unit/user.test.ts
 
+**Track**: test
+
 **验收标准**:
 - [ ] **AC-030** (happy-path): Given 核心模块代码已实现，When 执行 `npx $TEST_FRAMEWORK tests/unit/`，Then 全部通过且覆盖率 ≥ 80%
 - [ ] **AC-031** (boundary): Given 边界输入（空值、超长、特殊字符），When 调用被测函数，Then 按预期抛出异常或返回默认值
@@ -279,10 +338,12 @@ T-002 ──┘           │
 DESIGN_FILE="docs/iterations/$DATE/$SEQ-$SLUG-$TYPE/design.md"
 
 # 2. 分析设计文档，提取任务
-# - API 接口 → 实现任务
-# - 数据模型 → 迁移任务
-# - 安全考量 → 安全实现任务
-# - 测试需求 → 测试任务
+# - API 接口 → 实现任务（Track: backend）
+# - 数据模型 → 迁移任务（Track: infra）
+# - 共享类型/配置 → 共享包任务（Track: shared）
+# - UI 组件/页面 → 前端任务（Track: frontend）
+# - 安全考量 → 安全实现任务（按目标文件归 Track）
+# - 测试需求 → 测试任务（Track: test，仅 Phase 3）
 # - 目录影响声明 → workspace 落位任务
 
 # 3. 生成任务 ID（T-001, T-002, ...）并绑定 Requirement IDs（R-001, R-002, ...）
@@ -295,13 +356,22 @@ cat > "docs/iterations/$DATE/$SEQ-$SLUG-$TYPE/tasks.md" << 'TEMPLATE'
 TEMPLATE
 
 # 5. 验证任务完整性
-TOTAL_TASKS=$(grep -c "^### T-" "$TASKS_FILE")
+TOTAL_TASKS=$(grep -c "^### \[ \] T-\|^### \[x\] T-" "$TASKS_FILE")
 echo "生成了 $TOTAL_TASKS 个任务"
+
+# 5.1 验证 Track 字段覆盖率（每个任务必须声明 Track）
+TASKS_WITH_TRACK=$(grep -c "^\*\*Track\*\*:" "$TASKS_FILE")
+if [ "$TASKS_WITH_TRACK" -ne "$TOTAL_TASKS" ]; then
+  echo "❌ Track 字段缺失：$TOTAL_TASKS 个任务，仅 $TASKS_WITH_TRACK 个声明 Track"
+  exit 1
+fi
 
 # 6. TG 通知
 TOTAL_HOURS=$(grep -oP '预估工时: \K[0-9]+' "$TASKS_FILE" | awk '{s+=$1}END{print s}')
+TRACK_BREAKDOWN=$(grep -oP '^\*\*Track\*\*: \K\w+' "$TASKS_FILE" | sort | uniq -c | awk '{print $2"="$1}' | paste -sd' ' -)
 notify_tg "📋 任务分解完成: $TOTAL_TASKS 个任务
 ⏱ 预估工时: ${TOTAL_HOURS}h
+👥 Track 分布: $TRACK_BREAKDOWN
 📂 详见: docs/iterations/$DATE/$SEQ-$SLUG-$TYPE/tasks.md"
 ```
 
@@ -312,6 +382,8 @@ notify_tg "📋 任务分解完成: $TOTAL_TASKS 个任务
 | design.md 不存在 | 回退到步骤③ |
 | 设计过于笼统 | 提示用户补充设计细节 |
 | 任务数超过 20 | 建议拆分为多个子需求 |
+| 任务缺少 Track 字段 | 中止生成，要求补全后重试 |
+| Track 与目标文件路径不自洽 | 由 Gate 1 报告，触发修订 |
 
 ## TG 通知文案
 
@@ -320,6 +392,7 @@ notify_tg "📋 任务分解完成: $TOTAL_TASKS 个任务
 ```
 📋 任务分解完成: <任务总数> 个任务
 ⏱ 预估工时: <总工时>
+👥 Track 分布: frontend=N backend=N shared=N infra=N test=N
 📂 详见: docs/iterations/<date>/<seq>-<slug>-<type>/tasks.md
 ```
 
